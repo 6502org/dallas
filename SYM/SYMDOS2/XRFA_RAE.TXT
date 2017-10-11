@@ -1,0 +1,559 @@
+           ;COPYRIGHT AUG,DEC 1981 BY KIN-PING KWOK
+           ;         ALL RIGHT RESERVED
+           ;      XREF LISTER V1.1 FOR RAE
+           .BA $2800
+           .OS
+TXST       .DE $100
+STST       .DE $104
+PBUF       .DE $90
+TEXT       .DE $94
+BYF        .DE $9B
+CTF        .DE $96
+LBLFL      .DE $97
+LBLCT      .DE $98
+USER       .DE $9A
+FILECT     .DE $9C
+LBLPTR     .DE $92
+ERMSG      .DE $8171
+L/L        .DE $6
+START      .DE $90
+CURPTR     .DE $94
+TPTR       .DE $96
+STORE      .DE $98
+TXEN       .DE $102
+TPRES      .DE $D3
+PLAB       .DE $92
+SLAB       .DE $94
+LABADDR    .DE $96
+MEMPTR     .DE $98
+LABCT      .DE $9A
+LEN        .DE $9D
+FLAG       .DE $9F
+LINCT      .DE $9C
+TEMP       .DE $9E
+NIBASC     .DE $8309
+RAENOMSG   .DE $B146
+TSTART     .DE $124
+TEND       .DE $126
+HSTART     .DE $129
+HEND       .DE $12B
+U/LOAD     .DE $EF5D
+ROUTCHR    .DE $E3A4
+MINCHR     .DE $8A1B
+RCRLF      .DE $E3CA
+TAPEON1    .DE $E32A
+TAPEOF1    .DE $E318
+!!!MOVE    .MD ( P1 P2 )
+           IFP P1-$FF
+           LDA P1+1
+           ***
+           IFM P1-$FF
+           LDA *P1+1
+           ***
+           IFP P2-$FF
+           STA P2+1
+           ***
+           IFM P2-$FF
+           STA *P2+1
+           ***
+           IFP P1-$100
+           LDA P1
+           ***
+           IFM P1-$100
+           LDA *P1
+           ***
+           IFP P2-$100
+           STA P2
+           ***
+           IFM P2-$100
+           STA *P2
+           ***
+           .ME
+XREF
+SORT.NOFI  LDA #$40
+           .BY $2C
+SORT.FILE  LDA #$00
+           .BY $2C
+           LDA #$40
+           .BY $2C
+           LDA #$00
+           STA *FLAG
+           JMP ASKIP
+           JMP (VEC)
+ASKIP      ASL A
+           BCS TOMST
+           JSR SORT
+TOMST      JMP MSTART
+CONTAP     JSR CONT.TAPE
+           MOVE (TSTART TEXT)
+           INC *FILECT
+           BNE MSTART1
+ERREE      LDA *CTF
+           BNE CONTAP
+           LDA #$EE
+ERR        SEC
+           JSR ERMSG
+           JMP RAENOMSG
+MEND       LDA #$00
+           LDY #3
+MEND1      STA (PBUF),Y
+           DEY
+           BPL MEND1
+           JMP BMOVE
+MSTART     LDA TXST
+           STA *TEXT
+           STA *PBUF
+           LDA TXST+1
+           STA *TEXT+1
+           STA *PBUF+1
+           LDA #0
+           STA *FILECT
+MSTART1    LDX #0
+           STX *CTF
+           JSR CHECK
+MSTART2    CLV
+           LDY #2
+           STY *BYF
+           JSR CHR
+           CMP #0
+           BEQ ERREE
+           CMP #';
+           BEQ BNXT
+           CMP #'!
+           BNE MAIN1
+           LDX #$80
+           STX *BYF
+           BNE MAIN1.5
+MAIN1      CMP #'@
+           BCC MAIN2
+MAIN1.5    JSR LABELD
+MAIN2      JSR NXTFLD
+           CMP #'.
+           BEQ CKPO
+           JSR LABELM
+           JMP MAIN3
+CKPO       JSR NXTCHR
+           BVS B2NXT
+           LDX #2
+CKFU1      CMP PSE1,X
+           BEQ CKFU2
+           DEX
+           BPL CKFU1
+           BMI MAIN3
+CKFU2      JSR NXTCHR
+           CMP PSE2,X
+           BNE MAIN3
+           CPX #2
+           BNE CKEN
+           LDX #$80
+           STX *BYF
+           BNE MAIN3
+CKEN       CPX #1
+           BEQ FDCT
+           JMP MEND 
+FDCT       STX *CTF
+           JMP NXTLN
+MAIN3      JSR NXTFLD
+           LDX *BYF
+           BMI MAIN5
+           CMP #'A
+           BNE MAIN4
+           BVS NXTLN
+           JSR NXTCHR
+           CMP #$20
+           BEQ NXTLN
+           DEY
+           LDA #'A
+           CLV
+MAIN4      CMP #'#
+           BNE MAIN5
+           JSR NXTCHR
+           CMP #''
+BNXT       BEQ NXTLN
+           BVS MAIN5
+           JSR NXTCHR
+           CMP #',
+           BEQ DONXT
+           DEY
+           DEY
+           CLV
+DONXT      JSR NXTCHR
+MAIN5      CMP #'@
+           BCS MAIN6
+B2NXT      BVS NXTLN
+           CMP #'$
+           BEQ SKIP1
+           CMP #'.
+           BEQ SKIP1
+           CMP #'%
+           BNE CMPCP
+SKIP1      JSR NXTCHR
+           CMP #'.
+           BCS SKIP1
+           BCC DONXT
+CMPCP      CMP #')
+           BEQ NXTLN
+           CMP #'(
+           BNE CMPCOMA
+           LDA #$80
+           STA *BYF
+           BNE DONXT
+CMPCOMA    CMP #',
+           BEQ NXTLN
+           CMP #''
+           BNE CMPBLK
+           LDX *BYF
+           BPL NXTLN
+SKIP2      JSR NXTCHR
+           CMP #''
+           BNE SKIP2
+           BEQ CONT
+CMPBLK     CMP #$20
+           BNE DONXT
+           BIT *BYF
+           BPL NXTLN
+CONT       JSR NXTFLD
+           JMP MAIN5
+MAIN6      JSR LABELU
+           JMP DONXT
+NXTLN      LDX #$FF
+           TXS
+           DEY
+NXTL1      INY
+           LDA (TEXT),Y
+           BPL NXTL1
+           SEC
+           TYA
+           ADC *TEXT
+           STA *TEXT
+           BCC NXTL2
+           INC *TEXT+1
+NXTL2      JMP MSTART2
+NXTCHR     BVS NXTLN
+           INY
+CHR        LDA (TEXT),Y
+           BPL CHR1
+           AND #$7F
+CHR3       BIT CHR4
+CHR4       RTS
+CHR1       PHA
+           INY
+           LDA (TEXT),Y
+           DEY
+           AND #$7F
+           CMP #';
+           BNE CHR2
+           BIT CHR4
+CHR2       PLA
+           RTS
+NXTFLD     JSR CHR
+           CMP #$20
+           BEQ NCLN2
+NCLN1      JSR NXTCHR
+           CMP #$20
+           BNE NCLN1
+NCLN2      JSR NXTCHR
+           CMP #$20
+           BEQ NCLN2
+           RTS
+ERRIL      LDA #$11
+           JMP ERR
+LABELD     LDX #$0
+           BEQ LABELS
+LABELU     LDX #$20
+           BNE LABELS
+LABELM     LDX #$A0
+LABELS     STX LBLFL
+LABEL      LDX #0
+           STX *LBLCT
+           STX *LBLCT+1
+           STA LBLBU,X
+           CMP #'!
+           BNE LABEL0
+           BVS ERRIL
+           INY
+           JSR NXTCHR
+           BVS ERRIL
+           JSR NXTCHR
+           CMP #'@
+           BCC ERRIL
+           INX
+           INX
+           INX
+           STA LBLBU,X
+LABEL0     BVS LBLEND
+LABEL1     JSR NXTCHR
+           CMP #'.
+           BCC LBLEND
+           INX
+           STA LBLBU,X
+           BVC LABEL1
+LBLEND     PHP
+           DEY
+           LDA LBLBU,X
+           ORA #$80
+           STA LBLBU,X
+           STX *LEN
+           CLC
+           LDA STST
+           ADC #2
+           STA *LBLPTR
+           LDA STST+1
+           ADC #0
+           STA *LBLPTR+1
+           STY *USER
+LLOOPN     LDY #0
+           LDA (LBLPTR),Y
+           BNE LCKMAC
+           BIT *LBLFL
+           BMI FOUND2
+           JMP GR3
+LCKMAC     BIT *LBLFL
+           BPL LCKEXT
+           CMP #'!
+           BNE FOUND2
+           LDA *LBLPTR
+           ADC #2
+           STA *LBLPTR
+           BCC LLOOP0
+           INC *LBLPTR+1
+           BNE LLOOP0
+LCKEXT     STY *TEMP
+           CMP #'/
+           BNE LLOOP0
+           STA *TEMP
+           INC *LBLPTR
+           BNE LLOOP0
+           INC *LBLPTR+1
+LLOOP0     INC *LBLCT
+           BNE LLOOP1
+           INC *LBLCT+1
+LLOOP1     LDA (LBLPTR),Y
+           CMP LBLBU,Y
+           BNE LNXT
+           CMP #'!
+           BNE LLOOP2
+           DEX
+           DEX
+           INY
+           INY
+           BNE LLOOP2
+LLOOP      LDA (LBLPTR),Y
+           CMP LBLBU,Y
+           BNE LNXT
+LLOOP2     INY
+           DEX
+           BPL LLOOP
+           LDY #0
+           LDA *LBLCT+1
+           LDX #6
+FOUND      ASL *LBLCT
+           ROL A
+           DEX
+           BNE FOUND
+           STA (PBUF),Y
+           INY
+           LDA *FILECT
+           AND #$1F
+           ORA *LBLFL
+           AND #$3F
+           ORA *LBLCT
+           STA (PBUF),Y
+           LDA (TEXT),Y
+           INY
+           STA (PBUF),Y
+           LDA (TEXT,X)
+           INY
+           STA (PBUF),Y
+           TYA
+           SEC
+           ADC *PBUF
+           STA *PBUF
+           BCC FOUND1
+           INC *PBUF+1
+FOUND1     JSR CHECK
+FOUND2     LDY *USER
+           PLP
+           RTS
+LNXT       BCC LNXT3
+           BIT *LBLFL
+           BMI FOUND2
+           ASL A
+           BCS LNXT3
+           LDA *TEMP
+           BEQ GR3
+LNXT3      LDX *LEN
+           LDY #$FF
+LNXT1      INY
+           LDA (LBLPTR),Y
+           BPL LNXT1
+           INY
+           INY
+           TYA
+           SEC
+           ADC *LBLPTR
+           STA *LBLPTR
+           BCC LNXT2
+           INC *LBLPTR+1
+LNXT2      JMP LLOOPN
+CHECK      LDA *TEXT
+           CMP *PBUF
+           LDA *TEXT+1
+           SBC *PBUF+1
+           BCS GR1
+GR2        LDA #$0F
+           .BY $2C
+GR3        LDA #$0D
+           SEC
+           JMP ERR
+GR1        RTS
+BMOVE      LDA TXEN
+           STA *LBLPTR
+           LDA TXEN+1
+           STA *LBLPTR+1
+           CLC
+           LDA #3
+           ADC *START
+           STA *START
+           LDY #0
+           TYA
+           ADC *START+1
+           STA *START+1
+BM1        LDA (START),Y
+           STA (LBLPTR),Y
+           LDA *START
+           BNE BM2
+           DEC *START+1
+BM2        DEC *START
+           LDA *LBLPTR
+           BNE BM3
+           DEC *LBLPTR+1
+BM3        DEC *LBLPTR
+           LDA *START
+           CMP TXST
+           BNE BM1
+           LDA *START+1
+           CMP TXST+1
+           BNE BM1
+           LDA (START),Y
+           STA (LBLPTR),Y
+           MOVE (LBLPTR START)
+           JMP SSTART
+SEND       JMP ESTART
+SSTART     MOVE ( START LBLPTR )
+S0         LDA *LBLPTR
+           CLC
+           ADC #4
+           STA *LBLPTR
+           BCC S1
+           INC *LBLPTR+1
+S1         LDY #0
+           LDA (LBLPTR),Y
+           BNE S2
+           INY
+           LDA (LBLPTR),Y
+           BEQ SEND
+S2         MOVE ( LBLPTR CURPTR )
+S2.5       LDA *CURPTR
+           CMP *START
+           BNE S3
+           LDY *CURPTR+1
+           CPY *START+1
+           BEQ S20
+S3         SEC
+           SBC #4
+           STA *CURPTR
+           BCS S4
+           DEC *CURPTR+1
+S4         LDY #0
+S5         LDA (LBLPTR),Y
+           CMP (CURPTR),Y
+           BEQ S6
+           BCS S10
+           BCC S2.5
+S6         INY
+           CPY #4
+           BCC S5
+S10        LDA *CURPTR
+           CLC
+           ADC #4
+           STA *CURPTR
+           BCC S11
+           INC *CURPTR+1
+S11        LDA *LBLPTR
+           CMP *CURPTR
+           BNE S20
+           LDA *LBLPTR+1
+           CMP *CURPTR+1
+           BEQ S0
+S20        LDY #3
+S21        LDA (LBLPTR),Y
+           STA STORE,Y
+           DEY
+           BPL S21
+           MOVE ( LBLPTR TPTR )
+S21.5      LDA *LBLPTR
+           CMP *CURPTR
+           BNE S22
+           LDA *LBLPTR+1
+           CMP *CURPTR+1
+           BEQ S25
+S22        LDA *LBLPTR
+           BNE S23
+           DEC *LBLPTR+1
+S23        DEC *LBLPTR
+S24        LDY #0
+           LDA (LBLPTR),Y
+           LDY #4
+           STA (LBLPTR),Y
+           BNE S21.5
+S25        LDY #3
+S26        LDA STORE,Y
+           STA (LBLPTR),Y
+           DEY
+           BPL S26
+           MOVE ( TPTR LBLPTR )
+           JMP S0
+END        JSR END.LIN
+           LDA *START
+           CLC
+           ADC #3
+           STA *START
+           BCC ENDJMP
+           INC *START+1
+ENDJMP     JSR CM2
+           JMP RAENOMSG
+ESTART     LDA TXST+1
+           STA *MEMPTR+1
+           LDA TXST
+           STA *MEMPTR
+           LDY #MSGEND-MSG-1
+WRTMSG     LDA MSG,Y
+           STA (MEMPTR),Y
+           DEY
+           BPL WRTMSG
+           INY
+           LDA #MSGEND-MSG-1
+           CLC
+           ADC *MEMPTR
+           STA *MEMPTR
+           BCC WRMSG1
+           INC *MEMPTR+1
+WRMSG1     STY *LINCT+1
+           INY
+           STY *PLAB
+           LDY #$10
+           STY *LINCT
+           LDY #$80
+           STY *PLAB+1
+           LDY #L/L
+           STY *LABCT
+           LDA STST
+           STA *LABADDR
+           LDA STST+1
+           STA *LABADDR+1
+MO.LBLCO   LDY #0
+           LDA (START),Y
+           STA *SLAB+1
+           INY
+           .CT XRFB.RAE 0

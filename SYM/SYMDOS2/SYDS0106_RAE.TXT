@@ -1,0 +1,398 @@
+PR
+ 
+ 
+ 
+                           INTRODUCTION 
+ 
+ 
+      FDC-1  is  a disk controller for SYM with 4K DOS  on  board. 
+ However there are bugs exist in the DOS. Moreover the undeletable 
+ file  format is very inconvenient.  The user have to  reformat  a 
+ diskette  very  often.  The  design  of the DOS  also  limit  its 
+ expansion. Due to the above reasons, I try to write a new DOS for 
+ FDC-1 to replace the original one. 
+ 
+      SYMDOS2  replace the original DOS directly.  It can  operate 
+ with either 5" or 8" dual drive system.  See FDC-1 manual for the 
+ configuration  required.  It can operate up to four  single  side 
+ drive  with  little hardware modification.  When using  on  board 
+ keyboard,  you  have to change the vectors yourself as if in  the 
+ origional DOS. 
+ 
+      SYMDOS2 can operate in as small as 1K system. The default is 
+ for 4K system. The diskette format is default as 5" single densty 
+ 128  bytes/sector  or  5" double denstiy  256  bytes/sector.  See 
+ ALTERNATION  for  change  of  defaults.   Diskette  formatted  by 
+ original DOS may be used by SYMDOS2. However the directory format 
+ is not compatible. 
+ 
+      SYMDOS2 is carefully checked to eliminate bugs.  If any bugs 
+ exist, please drop me a note. 
+ 
+      Finally I hope you would like SYMDOS2. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                                 1 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                       FILE NAME FORMAT 
+ 
+      Characters  - ,  " and embedded space should not be used  in 
+ all types of file name. Allowable characters are: 
+           A-Z       $         +         = 
+           a-z       %         /         > 
+           0-9       &         : 
+           !         (         ; 
+           #         )         < 
+      In BASIC, : is also an invalid character in filename. 
+      
+      There are two different file name foramt. 
+ 
+  I.   Similar  to  original  FIO  but file name may be  up  to  11 
+       characters long but "." cannot be one of the character. 
+ 
+  II.  There are two types of filename: 
+       Type  I is unambiguous file name.  Maxinium length of  file 
+       name is 8 but it has a extension of maxinium 3  characters. 
+       During input it takes the form: 
+             FILENAME.EXT  ("."  will  not be stored as one of  the 
+       characters of the file name.) 
+ 
+       Character ? and * are invalid in type I. 
+ 
+       Followings are valid file name: 
+          FIO2$1.RAE     FIO2$1.OBJ     LIKEIT.Y/N 
+          BOOTSDOS. (equivalent to BOOTSDOS.) 
+ 
+       Followings are invalid: 
+          NAMETOOLONG.OBJ     (file name exceed 8 characters) 
+          NAMETOOLO.NG 
+          SMALL.FORTH         (extension exceed 3 characters) 
+       (NAMETOOLONG  is  a  valid file  name  of  Form  I.  However 
+       NAMETOOLONG. is invalid) 
+ 
+       Extension  is used to show what kind of program is  it.  For 
+       example: 
+          .RAE :RAE source listing      .REL :relocatable file 
+          .OBJ :object code             .DAT :data file 
+          .COM :executable file         .XRF :cross reference listing 
+          .BAS :BASIC program           .SWP :SWP files 
+          .FOR :FORTH                   .PAS :PASCAL program 
+          .PRN :print file 
+          .....etc 
+ 
+       Type II is ambiguous file name. File name may contain * and 
+       ? but they are not intrepret as characters of file name. 
+       e.g.    FILE?1.COM   refer   to   FILE11.COM,    FILE#1.COM 
+       ,FILEA1.COM, ...etc. '?' will  match for any character. 
+       ????????.??? refer to all files. 
+ 
+ 
+ 
+ 
+                                 2 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+       Function of '*' is similar to '?' but it is more  powerful. 
+       *.* is same as ????????.??? 
+       FILE*.COM is same as FILE????.COM 
+       FILE*1.* is same as FILE????.??? (1 is useless) 
+ 
+           This  type of file name should not be used in save  and 
+       load command.  It may only be used in directory listing and 
+       deleting. 
+ 
+ 
+ 
+ 
+                    DISK DRIVE UNIT ASSIGNMENTS 
+ 
+        UNIT NO.                 ASSIGNMENT 
+           0              DRIVE 0 SIDE 1, READ OR WRITE 
+           1              DRIVE 1 SIDE 1, READ OR WRITE 
+           2              DRIVE 0 SIDE 2, READ OR WRITE 
+           3              DRIVE 1 SIDE 2, READ OR WRITE 
+ 
+           4              DRIVE 0 SIDE 1, READ VERIFY AFTER WRITE 
+           5              DRIVE 1 SIDE 1, READ VERIFY AFTER WRITE 
+           6              DRIVE 0 SIDE 2, READ VERIFY AFTER WRITE 
+           7              DRIVE 1 SIDE 2, READ VERIFY AFTER WRITE 
+ 
+ 
+ 
+ 
+ OPERATION WITH SUPERMON 
+ 
+      A  terminal must be used in using SYMDOS2.  Every time after 
+ reset, you should link SUPERMON with SYMDOS2 by: 
+      .G 9006 <cr> 
+ 
+      There are four commands for disk operation. They are L3, L7, 
+ S3  and S4.  Error message will display as ER nn.  (nn  is  error 
+ number.  See  appendix  B for the listing of error  code.  During 
+ input of file name,  last character can be deleted by using  RUB, 
+ BACK  ARROW(UNDERLINE) OR CTL-H.  Character before '.' cannot  be 
+ deleted. 
+ 
+ 
+ Command L3: This command is for loading a saved file into memory. 
+             Going  to the start address immediately after loading 
+             can be chosen as option. See the following additional 
+             unit assignment. 
+ 
+ 
+           80             DRIVE 0 SIDE 1, GO ST. ADDRS AFTER READ 
+           81             DRIVE 1 SIDE 1, GO ST. ADDRS AFTER READ 
+           82             DRIVE 0 SIDE 2, GO ST. ADDRS AFTER READ 
+           83             DRIVE 1 SIDE 2, GO ST. ADDRS AFTER READ 
+ 
+   
+ 
+ 
+                                 3 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+   Type I: .L3<cr> 
+           filename,u<cr>      filename must be unambiguous 
+                               u is unit number 
+      This  command  loads the file into the  same  location  from 
+    which it was originally saved. 
+ 
+  Type II:.L3<cr> 
+          filename,u,sa<cr>    filename must be unambiguous 
+                               u is unit number 
+                               sa  is the starting address of  the 
+                               file to be loaded 
+      This  command allows the loading of the file into  different 
+    location. 
+ 
+   Data loaded from the disk must be in whole number of sectors. 
+ 
+ Command L7: It  will  list  all  or some selected  files  on  the 
+             diskette  to  the  display.  There  are  two  listing 
+             formats. They are as follow: 
+             filenameEXT :filenameEXT : ...... 
+             Default  is  6  directories per line for  80  columns 
+             terminal. 
+        OR   filenameEXT ssss-eeee:filenameEXT ssss-eeee:..... 
+             This kind of format can be selected by setting bit  7 
+             of DIR/LIN in ID sector to 1.  The no. of directories 
+             per line is indicate in the lower 7 bits.  $82  means 
+             that there are 3 directories per line. 
+  Type I :.L7 u<cr> 
+    It  will list all the files on the diskette in the drive  with 
+    unit number u. 
+ 
+  Type II:.L7 <cr> 
+          filename,u<cr>       filename can be ambiguous 
+    It  will  only  list  the  file(s)  which  are  referenced  by 
+    filename.  filename of *.* will list all the files. 
+ 
+ NOTE: If  you want to select the directory format other than that 
+       selected in the ID sector. You may do as follow: 
+       (1)  Change DIR/LIN in memory to you  desired  value.  e.g. 
+       $82, $05 etc. 
+       (2)  L7 80<cr> (or 80+your desire drive unit no.) 
+       During these operation. No SETPARMS will be done. 
+ 
+ Command S0: This is a rename command. Command format is: 
+             S0<cr> 
+             new filename,old filename,drive unit no. 
+             The  file  with old file name in the specified  drive 
+             will change to the new file name. 
+ 
+ Command S3: This is SAVE command.  When execute this command, the 
+             DOS will first delete file with the same file name on 
+             the diskette if any.  Make sure that different  files 
+             do not have same file name before saving. 
+ 
+           .S3<cr> 
+ 
+ 
+                                 4 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+           filename,u,sa,ea<cr>     filename must be unambiguous 
+                                    u is drive unit number 
+                                    sa is starting address 
+                                    ea is ending address 
+ 
+    Whole number of sectors of data will be saved on the  diskette 
+  and  some  extra  data  will  be transfered  to  memory  in  the 
+  subsequent loads. 
+ 
+ 
+ Command S4: This  command is used to delete unwanted  file(s)  on 
+             the  diskette.  This command is very powerful and  so 
+             very dangerous. This command can delete ALL the files 
+             on the diskette. Be careful when using this command. 
+ 
+           .S4<cr> 
+           filename,u<cr>           filename can be ambiguous 
+                                    u is drive unit number 
+    e.g.   .S4<cr> 
+           *.*,0<cr>   will delete all files on the diskette. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                                 5 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ OPERATION WITH BASIC 
+ 
+    By executing X=USR(&"9000",0)<cr>, BAS-1 will link to SYMDOS2. 
+ The  memory upper limit of BAS-1 is not set during log on.  There 
+ are two disk command in BASIC. They are LOAD and SAVE. 
+ 
+ LOAD  u:"filename"<cr> will load the file 'filename'  from  drive 
+ with  unit  number  u into memory.  If size  of  the  program  is 
+ greater than the available memory space, ER 0F will be printed. 
+ LOAD   u:A,"filename"<cr>  will  append the file with  file  name 
+ 'filename'  to  the end of the program in memory.  If  is  user's 
+ responsibility  to make sure that the two program have  different 
+ line number and proper line number sequence. 
+ 
+ SAVE u:"filename"<cr> will save the file to the diskette. 
+ 
+ filename in SAVE and LOAD command must be unambiguous. 
+ 
+ Error message will be displayed as nn BAD LOAD or nn BAD SAVE. nn 
+ is error code. 
+ 
+ SYMDOS2  do not provide command for exiting to monitor in  BASIC. 
+ Since  BAS-1 do not link to SYMDOS2 through  INVEC,  so  terminal 
+ control patch may be used and most terminal control patch provide 
+ the command for exiting to SUPERMON. 
+ 
+ 
+ 
+ OPERATION WITH RAE 
+ 
+      By entering: 
+         >RU $9003<cr> 
+ RAE  will  link to SYMDOS2 and it will have  the  following  disk 
+ function: EN, LO ,DC and continue to disk. 
+ 
+ Command ENter: This is a save command. The format is, 
+           >EN filename u<cr> 
+ 
+ Command LOad: This  is  a load  command.  It can load  file  into 
+               memory or append file from the diskette. 
+           >LO filename u<cr> load file into memory 
+           >LO filename u A<cr> append  file from the diskette  to 
+                                the file in the memory. 
+ 
+ Command DC Dir: executing  this command will print the  directory 
+                 of the diskette on the termianl. 
+            >DC Dir u<cr>  list all files. 
+            >DC Dir filename u<cr> list some selected files. 
+                (see the use of L7 in OPERATION of SUPERMON) 
+ 
+ Command DC Kill: This command is to kill files on the diskette. 
+            >DC  Kill  filename u<cr>  delete the  file  from  the 
+                                       directory. 
+ 
+ 
+ 
+                                 6 
+ 
+ 
+ 
+//
+
+>

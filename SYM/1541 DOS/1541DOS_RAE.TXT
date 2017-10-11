@@ -1,0 +1,1390 @@
+PR
+ 0090             .BA $7000
+ 0100             JMP L9036
+ 0105  ;
+ 0110  L9003      JMP L910E
+ 0115  ;
+ 0120  L9006      JMP L9183
+ 0125  ;
+ 0130  L9009      JMP L91C9
+ 0135  ;
+ 0140  L900C      JMP L91E2
+ 0145  ;
+ 0150  L900F      JMP L923D
+ 0155  ;
+ 0160  L9012      JMP L932B
+ 0165  ;
+ 0170  L9015      JMP L9344
+ 0175  ;
+ 0180  L9018      JMP L9356
+ 0185  ;
+ 0190  L901B      JMP L9375
+ 0195  ;
+ 0200  L901E      JMP L93A9
+ 0205  ;
+ 0210  L9021      JMP L93AC
+ 0215  ;
+ 0220  L9024      JMP L945B
+ 0225  ;
+ 0230  L9027      JMP L946A
+ 0235  ;
+ 0240  L902A      JMP L9481
+ 0245  ;
+ 0250  L902D      JMP L9496
+ 0255  ;
+ 0260  L9030      JMP L94A5
+ 0265  ;
+ 0270  L9033      JMP L94BA
+ 0275  ;
+ 0280  L9036      JSR L901B
+ 0285             LDA #$08
+ 0290             STA $A647
+ 0295             LDA #$4C
+ 0300             STA $A600
+ 0305             STA $A603
+ 0310             STA $A606
+ 0315             STA $A609
+ 0320             STA $A60C
+ 0325             STA $A610
+ 0330             STA $A613
+ 0335             LDA #$70
+ 0340             STA $A615
+ 0345             LDX #$D1
+ 0350             LDA #$81
+ 0355             STX $A607
+ 0360             STA $A608
+ 0365             LDX #$AE
+ 0370             LDA #$70
+ 0375             STX $A66A
+ 0380             STA $A66B
+ 0385             LDX #$00
+ 0390             LDA #$78
+ 0395             STX $A62A
+ 0400             STA $A62B
+ 0405             LDX #$10
+ 0410             LDA #$78
+ 0415             STX $A601
+ 0420             STA $A602
+ 0425             LDX #$03
+ 0430             LDA #$B0
+ 0435             STX $A628
+ 0440             STA $A629
+ 0445             LDX #$27
+ 0450             LDA #$7A
+ 0455             STX $A620
+ 0460             STA $A621
+ 0465             LDX #$37
+ 0470             LDA #$7A
+ 0475             STX $A604
+ 0480             STA $A605
+ 0485             LDX #$00
+ 0490  L90A2      LDA L9570,X
+ 0495             BEQ L90AD
+ 0500             JSR $8A47
+ 0505             INX
+ 0510             BNE L90A2
+ 0515  L90AD      RTS
+ 0520  ;
+ 0525             STA *$FC
+ 0530             LDA $A657
+ 0535             CMP #$13
+ 0540             BNE L90C0
+ 0545             LDA *$FC
+ 0550             CMP #$2F
+ 0555             BNE L90EF
+ 0560             JMP L90F2
+ 0565  ;
+ 0570  L90C0      CMP #$1E
+ 0575             BNE L90CD
+ 0580             LDA *$FC
+ 0585             CMP #$2F
+ 0590             BNE L90EF
+ 0595             JMP L9170
+ 0600  ;
+ 0605  L90CD      CMP #$1F
+ 0610             BNE L90EF
+ 0615             LDA *$FC
+ 0620             CMP #$2F
+ 0625             BNE L90DA
+ 0630             JMP L91BC
+ 0635  ;
+ 0640  L90DA      CMP #$21
+ 0645             BNE L90E1
+ 0650             JMP L91D8
+ 0655  ;
+ 0660  L90E1      CMP #$3F
+ 0665             BNE L90E8
+ 0670             JMP L9236
+ 0675  ;
+ 0680  L90E8      CMP #$23
+ 0685             BNE L90EF
+ 0690             JMP L9312
+ 0695  ;
+ 0700  L90EF      JMP $A606
+ 0705  ;
+ 0710  L90F2      JSR $8208
+ 0715             LDX $A649
+ 0720             BEQ L9105
+ 0725             CPX #$01
+ 0730             BEQ L9102
+ 0735             LDA #$13
+ 0740             SEC
+ 0745             RTS
+ 0750  ;
+ 0755  L9102      STX $A64A
+ 0760  L9105      LDA $A647
+ 0765             STA $A64E
+ 0770             JSR L9012
+ 0775  L910E      JSR L901B
+ 0780             LDA #$F0
+ 0785             JSR L9018
+ 0790             BCS L9167
+ 0795             LDA #$60
+ 0800             JSR L938D
+ 0805             JSR L9128
+ 0810             JSR L902D
+ 0815             LDA #$E0
+ 0820             JMP L9015
+ 0825  ;
+ 0830  L9128      JSR L9033
+ 0835             STA *$FE
+ 0840             LDA *$FC
+ 0845             AND #$02
+ 0850             BNE L9167
+ 0855             JSR L9033
+ 0860             STA *$FF
+ 0865             LDA $A64A
+ 0870             BEQ L9140
+ 0875             JSR $829C
+ 0880  L9140      LDA #$FD
+ 0885             AND *$FC
+ 0890             STA *$FC
+ 0895             LDA $A00F
+ 0900             AND #$04
+ 0905             BEQ L916B
+ 0910             JSR L9033
+ 0915             TAX
+ 0920             LDA *$FC
+ 0925             AND #$02
+ 0930             BNE L9140
+ 0935             TXA
+ 0940             STA ($FE),Y
+ 0945             INC *$FE
+ 0950             BNE L9160
+ 0955             INC *$FF
+ 0960  L9160      BIT *$FC
+ 0965             BVC L9140
+ 0970             STY *$FC
+ 0975             RTS
+ 0980  ;
+ 0985  L9167      LDA *$FC
+ 0990  L9169      SEC
+ 0995             RTS
+ 1000  ;
+ 1005  L916B      LDA #$20
+ 1010             JMP L956A
+ 1015  ;
+ 1020  L9170      LDX $A649
+ 1025             CPX #$02
+ 1030             BNE L9169
+ 1035             JSR L9012
+ 1040             JSR $8293
+ 1045             LDA $A647
+ 1050             STA $A64E
+ 1055  L9183      JSR L901B
+ 1060             JSR $829C
+ 1065             LDA #$F1
+ 1070             JSR L9018
+ 1075             BCS L9167
+ 1080             LDA #$61
+ 1085             JSR L939B
+ 1090             JSR L91A0
+ 1095             JSR L9030
+ 1100             LDA #$E1
+ 1105             JMP L9015
+ 1110  ;
+ 1115  L91A0      LDA *$FE
+ 1120             JSR L902A
+ 1125             LDA *$FF
+ 1130             JSR L902A
+ 1135  L91AA      LDA $A00F
+ 1140             AND #$04
+ 1145             BEQ L916B
+ 1150             LDA ($FE),Y
+ 1155             JSR L902A
+ 1160             JSR $82B2
+ 1165             BNE L91AA
+ 1170             RTS
+ 1175  ;
+ 1180  L91BC      CPX #$00
+ 1185             BNE L9169
+ 1190             LDA $A647
+ 1195             STA $A64E
+ 1200             JSR L9012
+ 1205  L91C9      LDA #$FF
+ 1210             JSR L9018
+ 1215             BCS L9169
+ 1220             LDA #$EF
+ 1225             JSR L9015
+ 1230             BCS L9169
+ 1235             RTS
+ 1240  ;
+ 1245  L91D8      CPX #$00
+ 1250  L91DA      BNE L9169
+ 1255             LDA $A647
+ 1260             STA $A64E
+ 1265  L91E2      LDA #$35
+ 1270             STA *$FE
+ 1275             LDA #$01
+ 1280             STA *$FF
+ 1285             LDA #$1E
+ 1290             STA $0154
+ 1295             LDA #$6F
+ 1300             JSR L9208
+ 1305             BCS L9207
+ 1310             LDY #$00
+ 1315             JSR $834D
+ 1320  L91FB      LDA ($FE),Y
+ 1325             JSR $8A47
+ 1330             INY
+ 1335             CPY $0154
+ 1340             BNE L91FB
+ 1345             CLC
+ 1350  L9207      RTS
+ 1355  ;
+ 1360  L9208      JSR L901B
+ 1365             LDY #$00
+ 1370             STY *$FC
+ 1375             JSR L938D
+ 1380             BNE L922B
+ 1385  L9214      JSR L9033
+ 1390             STA ($FE),Y
+ 1395             CMP #$0D
+ 1400             BEQ L922E
+ 1405             INY
+ 1410             CPY $0154
+ 1415             BEQ L922E
+ 1420             LDA *$FC
+ 1425             BEQ L9214
+ 1430             CMP #$40
+ 1435             BEQ L922E
+ 1440  L922B      JMP L9167
+ 1445  ;
+ 1450  L922E      STY $0154
+ 1455             JSR L902D
+ 1460             CLC
+ 1465             RTS
+ 1470  ;
+ 1475  L9236      CPX #$00
+ 1480             BNE L91DA
+ 1485             LDA $A647
+ 1490  L923D      STA $A64E
+ 1495             LDA #$24
+ 1500             STA $0135
+ 1505             LDX #$01
+ 1510             STX $0154
+ 1515             LDA #$F0
+ 1520             JSR L9018
+ 1525             BCS L9207
+ 1530             LDA #$60
+ 1535             JSR L938D
+ 1540             JSR $834D
+ 1545             LDA #$00
+ 1550             STA *$FC
+ 1555             LDY #$03
+ 1560  L925F      STY $0154
+ 1565             JSR L9033
+ 1570             STA $0135
+ 1575             JSR L9033
+ 1580             STA $0136
+ 1585             LDA *$FC
+ 1590             BNE L92BB
+ 1595             LDY $0154
+ 1600             DEY
+ 1605             BNE L925F
+ 1610             JSR L92CE
+ 1615             JSR $8342
+ 1620             JSR $8342
+ 1625  L9281      JSR L9033
+ 1630             CMP #$20
+ 1635             BEQ L9281
+ 1640             BNE L9295
+ 1645  L928A      JSR L9033
+ 1650             LDX *$FC
+ 1655             BNE L92BB
+ 1660             CMP #$00
+ 1665             BEQ L92B4
+ 1670  L9295      JSR $8A47
+ 1675             JSR $8386
+ 1680             BCC L928A
+ 1685             LDA $A653
+ 1690             PHA
+ 1695             LDA #$40
+ 1700             STA $A653
+ 1705  L92A6      JSR $8A1B
+ 1710             CMP #$20
+ 1715             BNE L92A6
+ 1720             PLA
+ 1725             STA $A653
+ 1730             CLC
+ 1735             BCC L928A
+ 1740  L92B4      JSR $834D
+ 1745             LDY #$02
+ 1750             BNE L925F
+ 1755  L92BB      CMP #$40
+ 1760             BNE L930F
+ 1765             JSR $834D
+ 1770             LDA #$00
+ 1775             STA *$FC
+ 1780             JSR L902D
+ 1785             LDA #$E0
+ 1790             JMP L9015
+ 1795  ;
+ 1800  L92CE      LDY #$00
+ 1805  L92D0      LDX #$00
+ 1810  L92D2      LDA $0135
+ 1815             SEC
+ 1820             SBC L930B,Y
+ 1825             STA $0135
+ 1830             LDA $0136
+ 1835             INY
+ 1840             SBC L930B,Y
+ 1845             BCC L92ED
+ 1850             STA $0136
+ 1855             INX
+ 1860             DEY
+ 1865             JMP L92D2
+ 1870  ;
+ 1875  L92ED      DEY
+ 1880             LDA $0135
+ 1885             ADC L930B,Y
+ 1890             STA $0135
+ 1895             TXA
+ 1900             ORA #$30
+ 1905             JSR $8A47
+ 1910             INY
+ 1915             INY
+ 1920             CPY #$04
+ 1925             BCC L92D0
+ 1930             LDA $0135
+ 1935             ORA #$30
+ 1940             JMP $8A47
+ 1945  ;
+ 1950  L930B      .BY $64      ;d
+ 1955             .BY $00
+ 1960             .BY $0A
+ 1965             .BY $00
+ 1970  L930F      JMP L9169
+ 1975  ;
+ 1980  L9312      JSR $8A1B
+ 1985             JSR $8275
+ 1990             BCS L930F
+ 1995             CMP #$08
+ 2000             BCC L930F
+ 2005             STA $A647
+ 2010             CLC
+ 2015             RTS
+ 2020  ;
+ 2025  L9323      JSR $834D
+ 2030             LDA #$2F
+ 2035             JSR $8A47
+ 2040  L932B      LDX #$00
+ 2045  L932D      JSR $8A1B
+ 2050             STA $0135,X
+ 2055             BEQ L9340
+ 2060             CMP #$04
+ 2065             BEQ L9323
+ 2070             INX
+ 2075             CPX #$1E
+ 2080             BEQ L932B
+ 2085             BCC L932D
+ 2090  L9340      STX $0154
+ 2095             RTS
+ 2100  ;
+ 2105  L9344      LDY *$FC
+ 2110             BNE L9353
+ 2115             JSR L939B
+ 2120             JSR L9030
+ 2125             LDA *$FC
+ 2130             BNE L9353
+ 2135             RTS
+ 2140  ;
+ 2145  L9353      JMP L9167
+ 2150  ;
+ 2155  L9356      LDY #$00
+ 2160             STY *$FC
+ 2165             JSR L939B
+ 2170             BNE L9353
+ 2175             LDA $0154
+ 2180             BEQ L9370
+ 2185  L9364      LDA $0135,Y
+ 2190             JSR L902A
+ 2195             INY
+ 2200             CPY $0154
+ 2205             BNE L9364
+ 2210  L9370      LDY #$00
+ 2215             JMP L9030
+ 2220  ;
+ 2225  L9375      PHA
+ 2230             JSR $8B86
+ 2235             LDA #$38
+ 2240             STA $A003
+ 2245             LDA #$20
+ 2250             STA $A00F
+ 2255             LDA #$00
+ 2260             STA $A008
+ 2265             STA $A009
+ 2270             PLA
+ 2275             RTS
+ 2280  ;
+ 2285  L938D      PHA
+ 2290             LDA $A64E
+ 2295             JSR L901E
+ 2300             PLA
+ 2305             JSR L9027
+ 2310             LDY *$FC
+ 2315             RTS
+ 2320  ;
+ 2325  L939B      PHA
+ 2330             LDA $A64E
+ 2335             JSR L9021
+ 2340             PLA
+ 2345             JSR L9024
+ 2350             LDY *$FC
+ 2355             RTS
+ 2360  ;
+ 2365  L93A9      ORA #$40
+ 2370             .BY $2C      ;,
+ 2375  L93AC      ORA #$20
+ 2380             JSR L9560
+ 2385  L93B1      PHA
+ 2390             BIT $A62E
+ 2395             BPL L93C2
+ 2400             SEC
+ 2405             ROR *$FD
+ 2410             JSR L93E3
+ 2415             LSR $A62E
+ 2420             LSR *$FD
+ 2425  L93C2      PLA
+ 2430             STA $0153
+ 2435             SEI
+ 2440             JSR L9537
+ 2445             CMP #$3F
+ 2450             BNE L93D1
+ 2455             JSR L9525
+ 2460  L93D1      LDA $A00F
+ 2465             ORA #$08
+ 2470             STA $A00F
+ 2475  L93D9      SEI
+ 2480             JSR L952E
+ 2485             JSR L9537
+ 2490             JSR L9553
+ 2495  L93E3      SEI
+ 2500             JSR L9537
+ 2505             JSR L9549
+ 2510             LSR A
+ 2515             BCS L944F
+ 2520             JSR L9525
+ 2525             BIT *$FD
+ 2530             BPL L9400
+ 2535  L93F4      JSR L9549
+ 2540             LSR A
+ 2545             BCC L93F4
+ 2550  L93FA      JSR L9549
+ 2555             LSR A
+ 2560             BCS L93FA
+ 2565  L9400      JSR L9549
+ 2570             LSR A
+ 2575             BCC L9400
+ 2580             JSR L952E
+ 2585             LDA #$08
+ 2590             STA *$F9
+ 2595  L940D      LDA $A00F
+ 2600             CMP $A00F
+ 2605             BNE L940D
+ 2610             LSR A
+ 2615             LSR A
+ 2620             BCC L9452
+ 2625             ROR $0153
+ 2630             BCS L9423
+ 2635             JSR L9540
+ 2640             BNE L9426
+ 2645  L9423      JSR L9537
+ 2650  L9426      JSR L9525
+ 2655             NOP
+ 2660             NOP
+ 2665             NOP
+ 2670             NOP
+ 2675             LDA $A00F
+ 2680             AND #$DF
+ 2685             ORA #$10
+ 2690             STA $A00F
+ 2695             DEC *$F9
+ 2700             BNE L940D
+ 2705             LDA #$04
+ 2710             STA $A009
+ 2715  L9440      LDA $A00D
+ 2720             AND #$20
+ 2725             BNE L9452
+ 2730             JSR L9549
+ 2735             LSR A
+ 2740             BCS L9440
+ 2745             CLI
+ 2750             RTS
+ 2755  ;
+ 2760  L944F      LDA #$80
+ 2765             .BY $2C      ;,
+ 2770  L9452      LDA #$01
+ 2775  L9454      JSR L956A
+ 2780             CLI
+ 2785             CLC
+ 2790             BCC L94AA
+ 2795  L945B      STA $0153
+ 2800             JSR L93D9
+ 2805  L9461      LDA $A00F
+ 2810             AND #$F7
+ 2815             STA $A00F
+ 2820             RTS
+ 2825  ;
+ 2830  L946A      STA $0153
+ 2835             JSR L93D9
+ 2840             SEI
+ 2845             JSR L9540
+ 2850             JSR L9461
+ 2855             JSR L9525
+ 2860  L947A      JSR L9549
+ 2865             BCS L947A
+ 2870             CLI
+ 2875             RTS
+ 2880  ;
+ 2885  L9481      BIT $A62E
+ 2890             BMI L948C
+ 2895             SEC
+ 2900             ROR $A62E
+ 2905             BNE L9491
+ 2910  L948C      PHA
+ 2915             JSR L93E3
+ 2920             PLA
+ 2925  L9491      STA $0153
+ 2930             CLC
+ 2935             RTS
+ 2940  ;
+ 2945  L9496      SEI
+ 2950             JSR L952E
+ 2955             LDA $A00F
+ 2960             ORA #$08
+ 2965             STA $A00F
+ 2970             LDA #$5F
+ 2975             .BY $2C      ;,
+ 2980  L94A5      LDA #$3F
+ 2985             JSR L93B1
+ 2990  L94AA      JSR L9461
+ 2995  L94AD      TXA
+ 3000             LDX #$08
+ 3005  L94B0      DEX
+ 3010             BNE L94B0
+ 3015             TAX
+ 3020             JSR L9525
+ 3025             JMP L9537
+ 3030  ;
+ 3035  L94BA      SEI
+ 3040             LDA #$00
+ 3045             STA *$F9
+ 3050             JSR L9525
+ 3055  L94C2      JSR L9549
+ 3060             BCC L94C2
+ 3065             JSR L9537
+ 3070  L94CA      LDA #$01
+ 3075             STA $A009
+ 3080  L94CF      LDA $A00D
+ 3085             AND #$20
+ 3090             BNE L94DD
+ 3095             JSR L9549
+ 3100             BCS L94CF
+ 3105             BCC L94F5
+ 3110  L94DD      LDA *$F9
+ 3115             BEQ L94E6
+ 3120             LDA #$02
+ 3125             JMP L9454
+ 3130  ;
+ 3135  L94E6      JSR L9540
+ 3140             JSR L94AD
+ 3145             LDA #$40
+ 3150             JSR L956A
+ 3155             INC *$F9
+ 3160             BNE L94CA
+ 3165  L94F5      LDA #$08
+ 3170             STA *$F9
+ 3175  L94F9      LDA $A00F
+ 3180             CMP $A00F
+ 3185             BNE L94F9
+ 3190             LSR A
+ 3195             BCC L94F9
+ 3200             LSR A
+ 3205             ROR *$F8
+ 3210  L9507      LDA $A00F
+ 3215             CMP $A00F
+ 3220             BNE L9507
+ 3225             LSR A
+ 3230             BCS L9507
+ 3235             DEC *$F9
+ 3240             BNE L94F9
+ 3245             JSR L9540
+ 3250             LDA *$FC
+ 3255             BEQ L9520
+ 3260             JSR L94AD
+ 3265  L9520      LDA *$F8
+ 3270             CLI
+ 3275             CLC
+ 3280             RTS
+ 3285  ;
+ 3290  L9525      LDA $A00F
+ 3295             AND #$EF
+ 3300             STA $A00F
+ 3305             RTS
+ 3310  ;
+ 3315  L952E      LDA $A00F
+ 3320             ORA #$10
+ 3325             STA $A00F
+ 3330             RTS
+ 3335  ;
+ 3340  L9537      LDA $A00F
+ 3345             AND #$DF
+ 3350             STA $A00F
+ 3355             RTS
+ 3360  ;
+ 3365  L9540      LDA $A00F
+ 3370             ORA #$20
+ 3375             STA $A00F
+ 3380             RTS
+ 3385  ;
+ 3390  L9549      LDA $A00F
+ 3395             CMP $A00F
+ 3400             BNE L9549
+ 3405             LSR A
+ 3410             RTS
+ 3415  ;
+ 3420  L9553      LDA #$04
+ 3425             STA $A009
+ 3430  L9558      LDA $A00D
+ 3435             AND #$20
+ 3440             BEQ L9558
+ 3445             RTS
+ 3450  ;
+ 3455  L9560      PHA
+ 3460  L9561      LDA $A00F
+ 3465             AND #$04
+ 3470             BEQ L9561
+ 3475             PLA
+ 3480             RTS
+ 3485  ;
+ 3490  L956A      ORA *$FC
+ 3495             STA *$FC
+ 3500             SEC
+ 3505             RTS
+ 3510  ;
+ 3515  L9570      ORA $3D0A
+ 3520             AND $3D3D,X
+ 3525             AND $3D3D,X
+ 3530             AND $3D3D,X
+ 3535             AND $3D3D,X
+ 3540             AND $3D3D,X
+ 3545             AND $3D3D,X
+ 3550             AND $3D3D,X
+ 3555             AND $3D3D,X
+ 3560             AND $3D3D,X
+ 3565             AND $3D3D,X
+ 3570             AND $0D3D,X
+ 3575             ASL A
+ 3580             .BY $53      ;S
+ 3585             .BY $59      ;Y
+ 3590             .BY $4D      ;M
+ 3595             .BY $2D      ;-
+ 3600             .BY $31      ;1
+ 3605             .BY $20 ;
+ 3610             .BY $31      ;1
+ 3615             .BY $35      ;5
+ 3620             .BY $34      ;4
+ 3625             .BY $31      ;1
+ 3630             .BY $20 ;
+ 3635             .BY $44      ;D
+ 3640             .BY $49      ;I
+ 3645             .BY $53      ;S
+ 3650             .BY $4B      ;K
+ 3655             .BY $20 ;
+ 3660             .BY $4F      ;O
+ 3665             .BY $50      ;P
+ 3670             .BY $45      ;E
+ 3675             .BY $52      ;R
+ 3680             .BY $41      ;A
+ 3685             .BY $54      ;T
+ 3690             .BY $49      ;I
+ 3695             .BY $4E      ;N
+ 3700             .BY $47      ;G
+ 3705             .BY $20 ;
+ 3710             .BY $53      ;S
+ 3715             .BY $59      ;Y
+ 3720             .BY $53      ;S
+ 3725             .BY $54      ;T
+ 3730             .BY $45      ;E
+ 3735             .BY $4D      ;M
+ 3740             .BY $0D
+ 3745             .BY $0A
+ 3750             .BY $43      ;C
+ 3755             .BY $6F      ;o
+ 3760             .BY $70      ;p
+ 3765             .BY $79      ;y
+ 3770             .BY $72      ;r
+ 3775             .BY $69      ;i
+ 3780             .BY $67      ;g
+ 3785             .BY $68      ;h
+ 3790             .BY $74      ;t
+ 3795             .BY $20 ;
+ 3800             .BY $31      ;1
+ 3805             .BY $39      ;9
+ 3810             .BY $38      ;8
+ 3815             .BY $34      ;4
+ 3820             .BY $20 ;
+ 3825             .BY $62      ;b
+ 3830             .BY $79      ;y
+ 3835             .BY $20 ;
+ 3840             .BY $52      ;R
+ 3845             .BY $6F      ;o
+ 3850             .BY $6E      ;n
+ 3855             .BY $61      ;a
+ 3860             .BY $6C      ;l
+ 3865             .BY $64      ;d
+ 3870             .BY $20 ;
+ 3875             .BY $41      ;A
+ 3880             .BY $2E      ;.
+ 3885             .BY $20 ;
+ 3890             .BY $4A      ;J
+ 3895             .BY $6F      ;o
+ 3900             .BY $72      ;r
+ 3905             .BY $64      ;d
+ 3910             .BY $61      ;a
+ 3915             .BY $6E      ;n
+ 3920             .BY $0D
+ 3925             .BY $0A
+ 3930             .BY $3D      ;=
+ 3935             .BY $3D      ;=
+ 3940             .BY $3D      ;=
+ 3945             .BY $3D      ;=
+ 3950             .BY $3D      ;=
+ 3955             .BY $3D      ;=
+ 3960             .BY $3D      ;=
+ 3965             .BY $3D      ;=
+ 3970             .BY $3D      ;=
+ 3975             .BY $3D      ;=
+ 3980             .BY $3D      ;=
+ 3985             .BY $3D      ;=
+ 3990             .BY $3D      ;=
+ 3995             .BY $3D      ;=
+ 4000             .BY $3D      ;=
+ 4005             .BY $3D      ;=
+ 4010             .BY $3D      ;=
+ 4015             .BY $3D      ;=
+ 4020             .BY $3D      ;=
+ 4025             .BY $3D      ;=
+ 4030             .BY $3D      ;=
+ 4035             .BY $3D      ;=
+ 4040             .BY $3D      ;=
+ 4045             .BY $3D      ;=
+ 4050             .BY $3D      ;=
+ 4055             .BY $3D      ;=
+ 4060             .BY $3D      ;=
+ 4065             .BY $3D      ;=
+ 4070             .BY $3D      ;=
+ 4075             .BY $3D      ;=
+ 4080             .BY $3D      ;=
+ 4085             .BY $3D      ;=
+ 4090             .BY $3D      ;=
+ 4095             .BY $0D
+ 4100             .BY $0A
+ 4105             .BY $0A
+ 4110             .BY $00
+ 6670             .BA $7800
+ 6675             JSR $8B86
+ 6680             LDA #$17
+ 6685             STA $A64A
+ 6690             LDA #$7A
+ 6695             STA $A64B
+ 6700             JMP $8855
+ 6705  ;
+ 6710             LDA #$01
+ 6715             STA *$EE
+ 6720             STA *$EF
+ 6725             LDA #$66
+ 6730             STA *$F6
+ 6735             LDA #$78
+ 6740             STA *$F7
+ 6745             LDA #$B3
+ 6750             STA *$EC
+ 6755             LDA #$99
+ 6760             STA *$ED
+ 6765             LDA #$60
+ 6770             STA $A610
+ 6775             LDA #$71
+ 6780             STA *$F4
+ 6785             LDA #$99
+ 6790             STA *$F5
+ 6795             LDA #$00
+ 6800             STA *$C8
+ 6805             LDA #$6F
+ 6810             STA *$C9
+ 6815             LDA #$00
+ 6820             STA $0100
+ 6825             LDA #$02
+ 6830             STA $0101
+ 6835             LDA #$FC
+ 6840             STA $0102
+ 6845             LDA #$5F
+ 6850             STA $0103
+ 6855             LDA #$00
+ 6860             STA $0104
+ 6865             LDA #$60
+ 6870             STA $0105
+ 6875             LDA #$FC
+ 6880             STA $0106
+ 6885             LDA #$6E
+ 6890             STA $0107
+ 6895             JMP $B003
+ 6900  ;
+ 6905             LDA $A647
+ 6910             BNE L9876
+ 6915             LDA $0111
+ 6920             BNE L9873
+ 6925             STA $0110
+ 6930  L9873      JMP $EF68
+ 6935  ;
+ 6940  L9876      CMP #$08
+ 6945             BCC L98E7
+ 6950             JSR $E318
+ 6955             LDA $0125
+ 6960             CMP #$01
+ 6965             BNE L9899
+ 6970             LDA #$00
+ 6975             STA $0128
+ 6980             STA $0110
+ 6985             STA $0129
+ 6990             STA $012A
+ 6995             STA $012B
+ 7000             STA $012C
+ 7005             RTS
+ 7010  ;
+ 7015  L9899      LDA $0111
+ 7020             BEQ L98EA
+ 7025             LDX #$00
+ 7030             JSR L992C
+ 7035  L98A3      LDA $A647
+ 7040             STA $A64E
+ 7045             STA $A64A
+ 7050             LDA $0124
+ 7055             STA $A64C
+ 7060             LDA $0125
+ 7065             STA $A64D
+ 7070             JSR L9003
+ 7075             BCS L98DA
+ 7080             LDA *$FE
+ 7085             STA $0126
+ 7090             LDA *$FF
+ 7095             STA $0127
+ 7100             CMP $0103
+ 7105             BNE L98D1
+ 7110             LDA *$FE
+ 7115             CMP $0102
+ 7120  L98D1      BCS L98E2
+ 7125             LDX #$00
+ 7130             JSR $E597
+ 7135             TXA
+ 7140             RTS
+ 7145  ;
+ 7150  L98DA      JSR $8171
+ 7155             LDX #$33
+ 7160             JMP ($B00E)
+ 7165  ;
+ 7170  L98E2      LDX #$31
+ 7175             JMP ($B00E)
+ 7180  ;
+ 7185  L98E7      JMP L9927
+ 7190  ;
+ 7195  L98EA      LDY #$02
+ 7200             LDA #$3B
+ 7205             STA ($D3),Y
+ 7210             LDA #$FF
+ 7215             STA $0109
+ 7220             JSR $B214
+ 7225             LDA $011C
+ 7230             STA *$FE
+ 7235             LDA $011D
+ 7240             STA *$FF
+ 7245             LDY #$01
+ 7250  L9904      INY
+ 7255             LDA ($FE),Y
+ 7260             BMI L9922
+ 7265             CMP #$2E
+ 7270             BNE L9904
+ 7275             INY
+ 7280             LDA ($FE),Y
+ 7285             CMP #$43
+ 7290             BNE L9904
+ 7295             INY
+ 7300             LDA ($FE),Y
+ 7305             CMP #$54
+ 7310             BNE L9904
+ 7315             INY
+ 7320             JSR L9946
+ 7325             JMP L98A3
+ 7330  ;
+ 7335  L9922      LDX #$34
+ 7340             JMP ($B00E)
+ 7345  ;
+ 7350  L9927      LDX #$32
+ 7355             JMP ($B00E)
+ 7360  ;
+ 7365  L992C      LDY #$02
+ 7370  L992E      JSR $8B86
+ 7375             LDA #$35
+ 7380             STA *$FE
+ 7385             LDA #$01
+ 7390             STA *$FF
+ 7395  L9939      LDA ($FE),Y
+ 7400             CMP #$2F
+ 7405             BEQ L9954
+ 7410             INY
+ 7415             CPY #$50
+ 7420             BEQ L9922
+ 7425             BNE L9939
+ 7430  L9946      LDX #$00
+ 7435             JSR $8B86
+ 7440  L994B      LDA ($FE),Y
+ 7445             CMP #$20
+ 7450             BNE L9955
+ 7455             INY
+ 7460             BNE L994B
+ 7465  L9954      INY
+ 7470  L9955      LDA ($FE),Y
+ 7475             AND #$7F
+ 7480             CMP #$20
+ 7485             BEQ L996D
+ 7490             CMP #$09
+ 7495             BEQ L996D
+ 7500             STA $0135,X
+ 7505             INX
+ 7510             CPX #$1E
+ 7515             BEQ L9922
+ 7520             LDA ($FE),Y
+ 7525             BPL L9954
+ 7530  L996D      STX $0154
+ 7535             RTS
+ 7540  ;
+ 7545             LDA $A647
+ 7550             BNE L9979
+ 7555             JMP $EF95
+ 7560  ;
+ 7565  L9979      CMP #$08
+ 7570             BCC L9927
+ 7575             JSR $E30F
+ 7580             LDA $0125
+ 7585             CMP #$01
+ 7590             BNE L998A
+ 7595             LDA #$00
+ 7600             RTS
+ 7605  ;
+ 7610  L998A      LDX #$00
+ 7615             JSR L992C
+ 7620             LDA $A647
+ 7625             STA $A64E
+ 7630             LDA $0129
+ 7635             STA $A64C
+ 7640             LDA $012A
+ 7645             STA $A64D
+ 7650             LDA $012B
+ 7655             STA $A64A
+ 7660             LDA $012C
+ 7665             STA $A64B
+ 7670             JSR L9006
+ 7675             BCS L99E6
+ 7680             RTS
+ 7685  ;
+ 7690             CPY #$50
+ 7695             BEQ L99E3
+ 7700             LDA $0135,Y
+ 7705             CMP #$23
+ 7710             BEQ L99EC
+ 7715             CMP #$21
+ 7720             BEQ L99F9
+ 7725             CMP #$3F
+ 7730             BEQ L9A07
+ 7735             CMP #$2F
+ 7740             BEQ L99CD
+ 7745             JMP $A610
+ 7750  ;
+ 7755  L99CD      LDA $A647
+ 7760             CMP #$08
+ 7765             BCC L99E9
+ 7770             CLC
+ 7775             STA $A64E
+ 7780             LDX #$00
+ 7785             JSR L992E
+ 7790             JSR L9009
+ 7795             BCS L99E6
+ 7800             RTS
+ 7805  ;
+ 7810  L99E3      JMP L9922
+ 7815  ;
+ 7820  L99E6      JMP L98DA
+ 7825  ;
+ 7830  L99E9      JMP L9927
+ 7835  ;
+ 7840  L99EC      INY
+ 7845             LDA $0135,Y
+ 7850             JSR $8275
+ 7855             BCS L99E9
+ 7860             STA $A647
+ 7865             RTS
+ 7870  ;
+ 7875  L99F9      LDA $A647
+ 7880             CMP #$08
+ 7885             BCC L99E9
+ 7890             CLC
+ 7895             STA $A64E
+ 7900             JMP L900C
+ 7905  ;
+ 7910  L9A07      LDX #$01
+ 7915             LDA $A647
+ 7920             CMP #$08
+ 7925             BCC L99E9
+ 7930             CLC
+ 7935             STA $A64E
+ 7940             JMP L900F
+ 7945  ;
+ 7950             .BY $47      ;G
+ 7955             .BY $42      ;B
+ 7960             .BY $30      ;0
+ 7965             .BY $30      ;0
+ 7970             .BY $30      ;0
+ 7975             .BY $0D
+ 7980             .BY $52      ;R
+ 7985             .BY $55      ;U
+ 7990             .BY $20 ;
+ 7995             .BY $24      ;$
+ 8000             .BY $41      ;A
+ 8005             .BY $36      ;6
+ 8010             .BY $30      ;0
+ 8015             .BY $30      ;0
+ 8020             .BY $0D
+ 8025             .BY $00
+ 8030             .BY $20 ;
+ 8035             .BY $86
+ 8040             .BY $8B
+ 8045  L9A2A      LDA #$4E
+ 8050             STA $A64A
+ 8055             LDA #$7C
+ 8060             STA $A64B
+ 8065             JMP $8855
+ 8070  ;
+ 8075             JSR $C458
+ 8080             LDA $A63A
+ 8085             LDY $A63B
+ 8090             STA $A60D
+ 8095             STY $A60E
+ 8100             LDA #$8A
+ 8105             LDY #$7A
+ 8110             STA $A63A
+ 8115             STY $A63B
+ 8120             JMP L9A6C
+ 8125  ;
+ 8130  L9A53      JSR $8B86
+ 8135             LDA $A661
+ 8140             LDY $A662
+ 8145             STA $A60D
+ 8150             STY $A60E
+ 8155             LDA #$8A
+ 8160             LDY #$7A
+ 8165             STA $A661
+ 8170             STY $A662
+ 8175  L9A6C      LDA #$00
+ 8180             STA $A653
+ 8185             LDA $A664
+ 8190             LDY $A665
+ 8195             STA $A60A
+ 8200             STY $A60B
+ 8205             LDA #$CA
+ 8210             LDY #$7A
+ 8215             STA $A664
+ 8220             STY $A665
+ 8225             JMP $C27E
+ 8230  ;
+ 8235             JSR $A60C
+ 8240             AND #$7F
+ 8245             CMP #$03
+ 8250             BNE L9AB9
+ 8255             JSR $8B86
+ 8260             LDA $A60A
+ 8265             STA $A664
+ 8270             LDA $A60B
+ 8275             STA $A665
+ 8280             LDA $A60D
+ 8285             STA $A661
+ 8290             LDA $A60E
+ 8295             STA $A662
+ 8300             LDA #$80
+ 8305             STA $A653
+ 8310             JSR $8035
+ 8315             JMP L9A53
+ 8320  ;
+ 8325  L9AB9      JMP $A609
+ 8330  ;
+ 8335  L9ABC      STA *$ED
+ 8340             STX *$EE
+ 8345             STY *$EF
+ 8350             RTS
+ 8355  ;
+ 8360  L9AC3      LDA *$ED
+ 8365             LDX *$EE
+ 8370             LDY *$EF
+ 8375             RTS
+ 8380  ;
+ 8385             JSR L9ABC
+ 8390             LDX #$05
+ 8395  L9ACF      PLA
+ 8400             DEX
+ 8405             BPL L9ACF
+ 8410             JSR L9AC3
+ 8415             CMP #$0D
+ 8420             BNE L9AE3
+ 8425             JSR $00D2
+ 8430             CMP #$23
+ 8435             BEQ L9AE9
+ 8440             LDA #$0D
+ 8445  L9AE3      JSR $A609
+ 8450             JMP L9AC3
+ 8455  ;
+ 8460  L9AE9      LDX #$07
+ 8465  L9AEB      PLA
+ 8470             DEX
+ 8475             BPL L9AEB
+ 8480             LDY #$00
+ 8485  L9AF1      LDX #$00
+ 8490  L9AF3      LDA *$1E,X
+ 8495             CMP L9C3F,Y
+ 8500             BNE L9B09
+ 8505             INX
+ 8510             INY
+ 8515             CPX #$03
+ 8520             BNE L9AF3
+ 8525             LDA L9C40,Y
+ 8530             PHA
+ 8535             LDA L9C3F,Y
+ 8540             PHA
+ 8545             RTS
+ 8550  ;
+ 8555  L9B09      INY
+ 8560             INY
+ 8565             CLC
+ 8570             CPY #$0F
+ 8575             BCC L9AF1
+ 8580             JMP $00CC
+ 8585  ;
+ 8590             LDA #$01
+ 8595             .BY $2C      ;,
+ 8600  L9B16      LDA #$00
+ 8605             JSR $8B86
+ 8610             STA $A648
+ 8615             LDA $A647
+ 8620             CMP #$08
+ 8625             BCC L9B8D
+ 8630             STA $A64E
+ 8635             STA $A64A
+ 8640             JSR L9C15
+ 8645             BCS L9B95
+ 8650             LDA $A648
+ 8655             BEQ L9B3B
+ 8660             LDX *$7D
+ 8665             LDY *$7E
+ 8670             BNE L9B3F
+ 8675  L9B3B      LDX *$7B
+ 8680             LDY *$7C
+ 8685  L9B3F      STX $A64C
+ 8690             STY $A64D
+ 8695             JSR L9003
+ 8700             BCS L9B99
+ 8705             LDX *$FE
+ 8710             LDY *$FF
+ 8715             STX *$7D
+ 8720             STY *$7E
+ 8725             CPY *$88
+ 8730             BNE L9B58
+ 8735             CPX *$87
+ 8740  L9B58      BCS L9BA1
+ 8745             RTS
+ 8750  ;
+ 8755             JSR L9B16
+ 8760             JMP $C707
+ 8765  ;
+ 8770             JSR $8B86
+ 8775             LDA $A647
+ 8780             CMP #$08
+ 8785             BCC L9B8D
+ 8790             STA $A64E
+ 8795             JSR L9C15
+ 8800             BCS L9B95
+ 8805             LDX *$7B
+ 8810             LDY *$7C
+ 8815             STX $A64C
+ 8820             STY $A64D
+ 8825             LDX *$7D
+ 8830             LDY *$7E
+ 8835             STX $A64A
+ 8840             STY $A64B
+ 8845             JSR L9006
+ 8850             BCS L9B9D
+ 8855             RTS
+ 8860  ;
+ 8865  L9B8D      LDA #$31
+ 8870             BNE L9BA3
+ 8875  L9B91      LDA #$36
+ 8880             BNE L9BA3
+ 8885  L9B95      LDA #$32
+ 8890             BNE L9BA3
+ 8895  L9B99      LDA #$33
+ 8900             BNE L9BA3
+ 8905  L9B9D      LDA #$34
+ 8910             BNE L9BA3
+ 8915  L9BA1      LDA #$35
+ 8920  L9BA3      SEC
+ 8925             JSR $8171
+ 8930             JSR $834D
+ 8935             RTS
+ 8940  ;
+ 8945             JSR $8B86
+ 8950             JSR L9C15
+ 8955             BCS L9B95
+ 8960             LDA $0135
+ 8965             CMP #$23
+ 8970             BEQ L9BC8
+ 8975             CMP #$21
+ 8980             BEQ L9BD9
+ 8985             CMP #$3F
+ 8990             BEQ L9BE7
+ 8995             CMP #$2F
+ 9000             BEQ L9BF4
+ 9005  L9BC6      BNE L9B91
+ 9010  L9BC8      LDA $0136
+ 9015             JSR $8275
+ 9020             BCS L9B8D
+ 9025             CMP #$08
+ 9030             BCC L9B8D
+ 9035             CLC
+ 9040             STA $A647
+ 9045             RTS
+ 9050  ;
+ 9055  L9BD9      LDA $A647
+ 9060             CMP #$08
+ 9065             BCC L9B8D
+ 9070             CLC
+ 9075             STA $A64E
+ 9080             JMP L900C
+ 9085  ;
+ 9090  L9BE7      LDA $A647
+ 9095             CMP #$08
+ 9100             BCC L9B8D
+ 9105             CLC
+ 9110             LDX #$01
+ 9115             JMP L900F
+ 9120  ;
+ 9125  L9BF4      LDA $A647
+ 9130             CMP #$08
+ 9135             BCC L9B8D
+ 9140             STA $A64E
+ 9145             LDY #$00
+ 9150  L9C00      LDA $0136,Y
+ 9155             STA $0135,Y
+ 9160             INY
+ 9165             CPY $0154
+ 9170             BCC L9C00
+ 9175             DEC $0154
+ 9180             JSR L9009
+ 9185             BCS L9BC6
+ 9190             RTS
+ 9195  ;
+ 9200  L9C15      INC *$D3
+ 9205             INC *$D3
+ 9210             JSR $00CC
+ 9215             CMP #$22
+ 9220             BNE L9C31
+ 9225             LDX #$00
+ 9230  L9C22      JSR $00CC
+ 9235             CMP #$22
+ 9240             BEQ L9C33
+ 9245             STA $0135,X
+ 9250             INX
+ 9255             CPX #$1E
+ 9260             BCC L9C22
+ 9265  L9C31      SEC
+ 9270             RTS
+ 9275  ;
+ 9280  L9C33      CPX #$00
+ 9285             BEQ L9C31
+ 9290             STX $0154
+ 9295             JSR $00CC
+ 9300             CLC
+ 9305             RTS
+ 9310  ;
+ 9315  L9C3F      .BY $23      ;#
+ 9320  L9C40      JMP $1550
+ 9325  ;
+ 9330             .BY $7B
+ 9335             .BY $23      ;#
+ 9340             .BY $53      ;S
+ 9345             .BY $50      ;P
+ 9350             .BY $60      ;`
+ 9355             .BY $7B
+ 9360             .BY $23      ;#
+ 9365             .BY $44      ;D
+ 9370             .BY $43      ;C
+ 9375             .BY $AA      ;*
+ 9380             .BY $7B
+ 9385             .BY $47      ;G
+ 9390             .BY $43      ;C
+ 9395             .BY $30      ;0
+ 9400             .BY $30      ;0
+ 9405             .BY $30      ;0
+ 9410             .BY $0D
+ 9415             .BY $32      ;2
+ 9420             .BY $38      ;8
+ 9425             .BY $36      ;6
+ 9430             .BY $37      ;7
+ 9435             .BY $32      ;2
+ 9440             .BY $0D
+ 9445             .BY $38      ;8
+ 9450             .BY $30      ;0
+ 9455             .BY $0D
+ 9460             .BY $31      ;1
+ 9465             .BY $3F      ;?
+ 9470             .BY $58      ;X
+ 9475             .BY $3D      ;=
+ 9480  L9C61      EOR *$53,X
+ 9485             .BY $52      ;R
+ 9490             .BY $28      ;(
+ 9495             .BY $26      ;&
+ 9500             .BY $22      ;"
+ 9505             .BY $41      ;A
+ 9510             .BY $36      ;6
+ 9515             .BY $30      ;0
+ 9520             .BY $33      ;3
+ 9525             .BY $22      ;"
+ 9530             .BY $2C      ;,
+ 9535             .BY $30      ;0
+ 9540             .BY $29      ;)
+ 9545             .BY $0D
+ 9550             .BY $52      ;R
+ 9555             .BY $55      ;U
+ 9560             .BY $4E      ;N
+ 9565             .BY $0D
+ 9570             .BY $00
+ 9580             .EN
+//
+
+>

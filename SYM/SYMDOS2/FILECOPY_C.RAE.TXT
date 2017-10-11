@@ -1,0 +1,302 @@
+;***********************************************
+;*            FILECOPY V1.0                    *
+;*    for SYM with FDC-1 and SYMDOS2           *
+;*    written by Kin-ping Kwok                 *
+;*      on Sept. 84                            *
+;***********************************************
+           .BA $200
+           .OS
+FILECOPY   JSR ACCESS
+           LDA #0
+           STA FLAG
+           LDX #MSG1-MSG        ;issue sign-on message
+           JSR OUTMSG
+           BEQ FC@
+FCERR2     LDX #MSG5-MSG        ;not sufficient mem. error
+           JMP OUTMSG
+ERR1       LDA #$50
+FCERR      JSR ERMSG
+           JMP OFF
+FC@        JSR SETPTRS
+           JSR SETFCBO  ;point to FCBO
+           JSR GETDTA2  ;get filename and data
+           BCS ERR1
+           CMP #2       ;at least 2 parameters
+           BCC ERR1
+           BEQ SETHIH   ;branch if exactly 2
+           LDA #$2
+           STA PARNR
+           LDA P3L
+           LDX P3H
+           BCS SH1
+SETHIH     JSR PSHOVE
+           LDA WRKBUF
+           LDX WRKBUF+1
+           DEX
+           SEC
+SH1        SBC #L,START
+           TXA
+           SBC #H,START         ;calc. the top addr. of buffer
+           AND #$FC
+           BEQ FCERR2
+           BCC FCERR2
+           ADC #H,START-$100
+           STA BUFTOP+1
+           LDA #L,START
+           STA BUFTOP
+           JSR SCAN     ;scan the filename
+           JSR CPFCBO
+           LDA P2L
+           STA DESDV
+           LDA P1L
+           STA SOUDV
+INS1       LDX #MSG2-MSG
+           JSR ASK?
+           LDA SOUDV
+           JSR FCLOAD   ;load file into memory
+TOFCER     BCS FCERR
+           LDX #MSG3-MSG
+           JSR ASK?
+           LDA DESDV
+           JSR FCSAVE   ;save the file in memory
+           BCS TOFCER
+           LDA FLAG     ;cont. copying if more file
+           TAX
+           AND #$FE
+           STA FLAG
+           TXA
+           BNE INS1
+           JMP OFF
+FCLCTU     LDA FLAG     ;clear the flag
+           AND #$BF
+           STA FLAG
+           JSR CALRMN   ;calc. the addr. of remaining
+           BNE FCLX2
+FCLOAD     JSR USET     ;main entry point
+           JSR SETPARMS
+           BCS FCLRTS
+           JSR SETFCBS  ;point to FCBS
+           BIT FLAG     ;see if copying of last file is completed?
+           BVS FCLCTU   ;branch if not
+           LDA #L,START         ;store the start address
+           STA P3L
+           LDA #H,START
+           STA P3H
+           JSR BEFLOAD  ;look for the file & make nece. calc.
+           BCS FCLRTS
+           LDX #MSG4-MSG
+           JSR OUTMSG
+           LDY #$0
+DSPNM      LDA (DIRPT),Y :disp. the file name
+           AND #$7F
+           JSR OUTCHR
+           INY
+           CPY #$B
+           BCC DSPNM
+           LDY #$F
+FCL1       LDA (DIRPT),Y :copy the name to FCB and FCDIR
+           STA (FCB),Y
+           STA FCDIR,Y
+           DEY
+           BPL FCL1
+           JSR MOVDIR
+           JSR BEFSET
+FCLX2      JSR DL2      ;loop to load the file
+           BCS FCLRTS
+           JSR ADJUST
+           BCC FCL1OK
+           LDA P3H      ;check whether the buffer is full
+           CMP BUFTOP+1
+           BCC FCLX2
+           BNE BUFFUL
+           LDA P3L
+           CMP BUFTOP
+           BCC FCLX2
+BUFFUL     LDA #$40     ;if full, set the flag
+           ORA FLAG
+           STA FLAG
+           CLC
+FCLRTS     RTS
+FCL1OK     LDA #1       ;whole file is loaded
+           LDY #EXTNO
+           STA (FCB),Y
+           JSR OPEN
+           BCS FCLRTS
+           JSR CPFCBO
+           JSR OPN2     ;more files to be loaded ?
+           BCS FCLRTS
+           BNE FCLRTS
+           LDY #$B      ;if yes, copy the name & set flag
+FCLNNM     LDA (DIRPT),Y
+           STA (FCB),Y
+           DEY
+           BPL FCLNNM
+           LDA #$1
+           ORA FLAG
+           STA FLAG
+           RTS
+FCSCTU     AND #$7F     ;clear the flag
+           STA FLAG
+           JSR CALRMN   ;calc. the addr. of the remaining
+           BNE SN2
+FCSAVE     JSR USET     ;main entry point
+           JSR SETPARMS
+           BCS FCLRTS
+           JSR SETFCBD
+           LDA FLAG     ;whole of the last file is saved ?
+           BMI FCSCTU   ;if not then branch
+           LDY #$A
+FCS1       LDA FCDIR,Y  ;copy the file name to FCBD
+           AND #$7F
+           STA FCBD,Y
+           DEY
+           BPL FCS1
+           LDA #L,START         ;calc. addr. of mem. to be saved
+           STA P3L
+           LDA #H,START
+           STA P3H
+           LDY #SAH
+           LDX #EAL-SAH
+FCS2       LDA FCDIR,Y
+           STA P2L,X
+           INY
+           DEX
+           BPL FCS2
+           JSR MOVADLOOP+$10
+           JSR DEL      ;delete the file with same file name
+           BCS FCSRTS
+           LDY #EXTNO
+           LDA #0
+           STA (FCB),Y
+           JSR DOSAVE@
+           JMP SN2.5
+SN2        JSR DS2@     ;loop to save
+SN2.5      BCS FCSRTS
+           JSR ADJUST
+           BCC FCSOK
+           LDA P3H      ;all data in buffer is saved ?
+           CMP BUFTOP+1
+           BCC SN2
+           BNE BUFSVD
+           LDA P3L
+           CMP BUFTOP
+           BCC SN2
+BUFSVD     LDA FLAG     ;if yes, then set flag
+           ORA #$80
+           STA FLAG
+           LDA P2L      ;calc. size of remaining portion
+           SEC
+           SBC P3L
+           STA REMAIN
+           LDA P2H
+           SBC P3H
+           STA REMAIN+1
+           CLC
+           RTS
+FCSOK      JSR DIRWRT@  ;save the directory entry
+FCSRTS     RTS
+DOSAVE@    SEC  ;subroutine to save 1 sector
+           ROR *OD
+           JSR NXTEXTA
+           BCS DSRTS
+           JSR CLRDIR
+           JSR BEFSET
+DS2@       JSR NXTSEC
+           BCC DS1@
+           JSR DIRWRT@
+           BCC DOSAVE@
+DSRTS      RTS
+DS1@       JMP DS1
+DIRWRT@    LDY #FDIRPT+1 :save a directory entry
+           LDA (FCB),Y
+           STA *DIRPT+1
+           DEY
+           LDA (FCB),Y
+           STA *DIRPT
+           DEY
+           LDA (FCB),Y
+           STA ISECTR
+           JSR GTLDS
+WRTDIR@    LDY #$C
+WD2@       LDA FCDIR,Y
+           STA (FCB),Y
+           INY
+           CPY #$10
+           BCC WD2@
+           JMP WD1-2
+OUTMSG     LDA MSG,X    ;disp message to console
+           BEQ OMSRTS
+           JSR OUTCHR
+           INX
+           BNE OUTMSG
+OMSRTS     RTS
+SETFCBS    LDA #L,FCBS  ;set FCB to point to FCBS
+           STA *FCB
+           LDA #H,FCBS
+           STA *FCB+1
+           RTS
+SETFCBD    LDA #L,FCBD  ;set FCB to point to FCBD
+           STA *FCB
+           LDA #H,FCBD
+           STA *FCB+1
+           RTS
+SETFCBO    LDA #L,FCBO  ;set FCB to point to FCBO
+           STA *FCB
+           LDA #H,FCBO
+           STA *FCB+1
+           RTS
+CPFCBO     LDY #$B      ;copy FCBO to FCBS
+CPFO       LDA FCBO,Y
+           STA FCBS,Y
+           DEY
+           BPL CPFO
+           RTS
+CALRMN     LDA #L,START         ;calc. addr. of remaining
+           STA P1L
+           CLC
+           ADC REMAIN
+           STA P2L
+           LDA #H,START
+           STA P1H
+           ADC REMAIN+1
+           STA P2H
+           JSR DUPP1INP3
+           LDY #BLKIXCT
+           LDA (FCB),Y
+           TAY
+           LDA (FCB),Y
+           TAX
+           LDY #SECCT
+           LDA (FCB),Y
+           JMP CALC
+ASK?       LDA SOUDV    ;see whether source and dest.
+           EOR DESDV    ;unit is the same drive?
+           AND #$F9
+           BNE NOASK    ;if not the same, skip the message
+           JSR OUTMSG
+           JSR OFF
+ASK1       JSR INCHR
+           CMP #$0D
+           BNE ASK1
+NOASK      RTS
+MSG
+MSG1       .BY $D $A 'FILECOPY V1.0'
+           .BY $D $A 'filename,source unit'
+           .BY ',dest. unit(,HIMEM) -> ' $00
+MSG2       .BY $D $A $A 'Put in SOURCE diskette '
+           .by 'then press RETURN' $00
+MSG3       .BY $D $A 'Put in DEST.  diskette '
+           .by 'then press RETURN' $00
+MSG4       .BY $0D $0A 'copying -> ' $00
+MSG5       .BY $D $A 'Not sufficient memory !!' $00
+SOUDV      .DS 1
+DESDV      .DS 1
+FLAG       .DS 1
+BUFTOP     .DS 2
+REMAIN     .DS 2
+FCBO       .DS 16
+FCBS       .DS 40
+FCBD       .DS 40
+FCDIR      .DS 16
+           .CT
+START      .EN

@@ -1,0 +1,81 @@
+                                                26th June,1984
+ 
+    The function of this program is to give more information about the
+selected files on the diskette. The number of unoccupied blocks on the
+diskette is also reported.
+ 
+1. HOW TO USE IT
+    Go to the starting address of the program (by G in SUPERMON,RU in
+RAE or L3 with unit number 8X) will give you two prompt lines:
+ 
+CATALOG V1.0
+filename,unit ->
+ 
+Enter the file name and then the unit number. e.g. *.*,0 refers to all
+files on the diskette in drive unit number 0. (See SYMDOS2 manual for
+the detail about the file name format.)
+ 
+filename,unit -> CAT.*,0<cr>         ;<cr> means the RETURN key
+ 
+As soon as the RETURN key is depressed, the drive will start spinning.
+After some time, it stopped and the selected files on the diskette will
+printed in the sorted order. For example, you may see the following:
+ 
+     FILENAME          EXT BLK  ADDRESS
+  CAT      COM   R/W    1  002 0200-051D
+  CAT      RAE   R/W    1  007 0800-1AA7
+  CAT      XRF   R/W    1  006 0800-17BF
+3 file(s) occupy 15 block(s)
+101 block(s) unoccupied
+ 
+The meaning of the last but one line is obvious. The last line give the
+number of unoccupied blocks on the diskette.
+ 
+    If you want to know the number of unoccupied blocks only, then type
+",u" when the program ask for filename and unit. u is the unit number.
+ 
+i.e.  filename,unit -> ,0
+      101 block(s) unoccupied
+ 
+2. MORE INFORMATION
+ 
+    If the file name is bracketed, it means that the file is set to no
+directory listing. i.e. it cannot be seen using "L7" or "DC D" command.
+(see also SET.DOC)
+ 
+   R/W means that the file can be read or write. R/O means that the file
+can be read only. It cannot be deleted or rename. (see also SET.DOC)
+ 
+    The field EXT give the number of extent of the file or equivalently
+the number of occupied directory entries. (see section DIRECTORY FORMAT
+p.8 of SYMDOS2 manual)
+ 
+    The field BLK give the number of blocks occupied by the file.
+ 
+    Address is the starting and end address of the file.
+ 
+    The program can be used on a 40 column terminal.
+ 
+    The listing can be stopped temporary by depressing shift-break key
+on the KTM-2 terminal or the equivalent key on other termainl. Pressing
+ctl-Q can continue the listing and ctl-C will terminate the listing and
+output the number of unoccupied blocks immediately.
+ 
+3. NOTES
+ 
+    The working area of the program start from the end of the program.
+Number of bytes required is 17 times the number of directory entries of
+the files then plus 1. Leaving about two pages of memory free after the
+program will probably sufficient.
+ 
+    Number of files is assumed to be less than 100.
+ 
+    Break key is checked at the end of each line. For slow terminal, you
+may have problem in stopping the listing. Add the checking of break key
+in the middle of the line if necessary.
+ 
+   The number of blocks on the diskette is not equal to the total number
+of blocks occupied by the files on the diskette plus the number of
+unoccupied blocks. Their difference is the number of blocks occupied by
+the directory.
+ 

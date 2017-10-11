@@ -1,0 +1,744 @@
+SETPARMS   JSR SETDPT   ;Setup parms for current disc
+           JSR DSPS     ;Reserve the value of WRKBUF
+           BCS SPSRTS
+           LDA *DIRPT
+           LDX *DIRPT+1
+           STA WRKBUF
+           STX WRKBUF+1
+SETPTRS    JSR SETDPT
+           SEC
+           SBC #$28
+           STA *FCB
+           BCS SPS1
+           DEX
+           SEC
+SPS1       STX *FCB+1
+           SBC #$20
+           STA *MAPPT
+           BCS SPS2
+           DEX
+SPS2       STX *MAPPT+1
+           CLC
+SPSRTS     RTS
+ 
+STIFLG     LDA FFLAGS
+           LSR A
+           LDA #MTRFLAG+SELFLAG
+           BCC INITSPS
+           LDA #0
+INITSPS    STA IFLAGS
+           RTS
+ 
+DSPS       JSR STIFLG
+DSPS1      LDX #0
+           STX ITRACK
+           STX DFLAGS
+           INX
+           STX ISECTR
+           LDA #8
+           JMP GDISKIO
+ 
+SETDPT     LDA WRKBUF
+           LDX WRKBUF+1
+           STA *DIRPT
+           STX *DIRPT+1
+           RTS
+ 
+DIRWRT     LDY #FDIRPT+1 :Restore the DIRPT and the
+           LDA (FCB),Y  ; sector # of the dir sector
+           STA *DIRPT+1
+           DEY
+           LDA (FCB),Y
+           STA *DIRPT
+           DEY
+           LDA (FCB),Y
+           STA ISECTR
+           JSR GTLDS    ;Load the sector into memory
+WRTDIR     LDX #3       ;Write dir entries to the sector
+           LDY #$C
+WD2        LDA P2L,X
+           STA (FCB),Y
+           INY
+           DEX
+           BPL WD2
+           LDY #$1F
+WD1        LDA (FCB),Y
+           STA (DIRPT),Y
+           DEY
+           BPL WD1
+           INY
+           LDX DFLAGS   ;Examine density of disc
+           BPL DOWRITE2 :Branch if double
+           EOR #$80     ;Else, set MSB of 1st byte of
+           STA (DIRPT),Y :the dir entries before writing
+DOWRITE2   LDA #5       ;Function #5 of DDI2
+GDISKIO    PHA
+           ASL ITRACK   ;If side 0, clr MSB of ITRACK
+           LDA UFLAGS   ;If side 1, set MSB of ITRACK
+           LSR A
+           ROR ITRACK
+           PLA
+           JMP DISKIO
+ 
+OPEN       LSR *OD
+FDFSTF     JSR GETDIR   ;Find 1st free dir entry
+           BCS ORTS
+OPN1       JSR SECCNT
+OPNANO     LDY #NAMBUF
+           LDA (DIRPT),Y
+           EOR DFLAGS
+           BMI FSTF
+           INY
+           LDA (DIRPT),Y
+           EOR *OD
+           BMI OPN2
+           LDA *OD
+           BMI FSTF
+           LDY #EXTNO
+CMPNM      LDA (FCB),Y  ;Cmp name in FCB and dir
+           BEQ CONTCHK
+           EOR (DIRPT),Y
+           AND #$7F
+           BNE OPN2
+CONTCHK    DEY
+           BPL CMPNM
+           INY
+FSTF       PHP
+           LDY #FDIRSEC :Save the DIRPT and
+           LDA DIRSEC   ; sector # of the dir sector
+           STA (FCB),Y
+           LDA *DIRPT
+           INY
+           STA (FCB),Y
+           LDA *DIRPT+1
+           INY
+           STA (FCB),Y
+           PLP
+           CLC
+ORTS       RTS
+ 
+OPN2       JSR NXTDIR
+           BCS ERR51?
+           BNE OPNANO
+           BEQ OPN1
+NXTDIR     DEC DIRCNT   ;Point to next dir sector
+           BEQ NTDSEC   ;Branch if more
+           LDA #$20
+           CLC
+           ADC *DIRPT
+           STA *DIRPT
+           BCC DIRFULL  ;Set Z=0, not dir full
+           INC *DIRPT+1
+           CLC
+DIRFULL    LDA #$51
+           RTS
+ 
+ERR51?     JMP CHK51
+           NOP
+           NOP
+ 
+NTDSEC     LDA DIRSEC
+           CMP DMXSEC
+           BCS DIRFULL
+           ADC #1
+           JSR GTDSEC
+           LDA #0
+           RTS
+ 
+SECCNT     LDA DFLAGS   ;Calculate dir entries/sector
+           AND #SECLEN
+           TAX
+           LDA #2
+SHIFT      ASL A
+           DEX
+           BPL SHIFT
+           STA DIRCNT
+           RTS
+ 
+GETDIR     LDA #1       ;Get 1st dir sector
+GTDSEC     STA DIRSEC   ;Get dir sector in [A]
+           STA ISECTR
+           JSR SETDPT
+GTLDS      LDA #1       ;Dir must be on track 1
+           STA ITRACK
+RDINBUF    JSR STIADDR
+DOREAD2    LDA #$4
+           JMP GDISKIO
+ 
+BEFLOAD    JSR OPEN
+           BCS RTSX
+           BEQ MOVADDRS
+NNMERR     LDA #$53
+           SEC
+RTSX       RTS
+ 
+MOVADDRS   LDY #SAH
+           LDX #EAL-SAH
+MOVADLOOP  LDA (DIRPT),Y
+           STA P2L,X
+           INY
+           DEX
+           BPL MOVADLOOP
+           LDA PARNR
+           CMP #2
+           BNE DUPP1INP3
+           SEC
+           LDA P2L
+           SBC P1L
+           STA *TEMP1
+           LDA P2H
+           SBC P1H
+           STA *TEMP3
+           JSR PSHOVE
+           JSR PSHOVE
+           LDA P1L
+           CLC
+           ADC *TEMP1
+           STA P2L
+           LDA P1H
+           ADC *TEMP3
+           STA P2H
+DUPP1INP3  LDA P1H
+           STA P3H
+           LDA P1L
+           STA P3L
+           RTS
+ 
+MOVDIR     LDY #$10     ;BLKNOS
+MD1        LDA (DIRPT),Y :Move the $10 block # to FCB
+           STA (FCB),Y
+           INY
+           CPY #$20
+           BCC MD1
+           RTS
+ 
+BEFSET     LDA SEC/BLK  ;Required before read/write
+           LDY #SECCT
+           STA (FCB),Y
+           LDA #$F
+           DEY  ;Y=BLKIXCT
+           STA (FCB),Y
+           RTS
+ 
+NXTSEC     LDA SEC/BLK
+           LDY #SECCT
+           CMP (FCB),Y
+           BEQ NS2
+           LDA #0
+           ADC (FCB),Y
+           STA (FCB),Y
+           LDX ISECTR
+           CPX NOSECS
+           BCC NS1
+           LDX #0
+           INC ITRACK
+NS1        INX
+           STX ISECTR
+           CLC
+NS3        RTS
+NS2        LDA #1
+           STA (FCB),Y
+           DEY
+           CLC
+           ADC (FCB),Y
+           CMP #$20
+           BCS NS3
+           STA (FCB),Y
+           TAY
+           LDA (FCB),Y
+           BEQ NS3
+           TAX
+           LDA #1
+CALC       STX *TEMP2   ;Block # in [X]
+           TAX          ;Sector count in [A]
+           LDA SEC/BLK  ;Calc physical track & sector #
+           STA *TEMP1   ; from block # and sector count
+           DEX  ; of block by complicated calc.
+           TXA  ;x=offset=sector count - 1
+           LDY #0
+           STY TEMP3
+CAL3       LSR *TEMP1
+           BCC CAL1
+           PHP
+           CLC
+           ADC *TEMP2
+           TAX
+           TYA
+           ADC *TEMP3
+           TAY
+           TXA
+           PLP
+CAL1       BEQ CAL2
+           ASL *TEMP2
+           ROL *TEMP3
+           BPL CAL3
+CAL2       STY *TEMP2   ;Y=H,RESULT;A=X=L,RESULT
+           LDY NOSECS   ;RESULT=blk no. * SEC/BLK
+           STY *TEMP3   ;     + sector count - 1
+           LDY #0
+           STY TEMP4    ;divide TEMP2,A pair
+           LSR *TEMP3   ;  by (TEMP3+1)
+           ROR *TEMP1   ;TEMP1=0,X=A
+CAL8       TXA
+CAL6       TAX
+           LSR *TEMP3
+           ROR *TEMP1
+           LDY *TEMP3
+           BNE CAL7
+           LDY *TEMP1
+           CPY NOSECS
+           BCC CAL9
+CAL7       SEC
+           SBC *TEMP1
+           TAY
+           LDA *TEMP2
+           SBC *TEMP3
+           BCC CAL4
+           STA *TEMP2
+           TYA
+           ROL TEMP4
+           BCC CAL6
+CAL4       ASL TEMP4
+           BCC CAL8
+CAL9       ADC #1
+           STA ISECTR
+           INC TEMP4
+           RTS
+ 
+NXTEXT     LSR *OD      ;Find next extent in dir
+NXTEXTA    LDY #EXTNO
+           LDA (FCB),Y
+           CLC
+           ADC #1
+           STA (FCB),Y
+           JMP FDFSTF
+ 
+INTPRM     LDX P3L
+           STX IADDR
+           LDX P3H
+           STX IADDR+1
+           RTS
+ 
+ADJUST     LDA DFLAGS
+           AND #SECLEN
+           TAX
+           LDA #0
+           STA *TEMP3
+           LDA #$40
+SIZADJ     ASL A
+           ROL *TEMP3
+           DEX
+           BPL SIZADJ
+           ADC P3L
+           STA P3L
+           LDA *TEMP3
+           ADC P3H
+           STA P3H
+           LDA P2L
+           CMP P3L
+           LDA P2H
+           SBC P3H
+           RTS
+ 
+DELIMITERS CMP #' 
+           BEQ GOTDELIM
+           CMP #',
+           BEQ GOTDELIM
+           CMP #'-
+           BEQ GOTDELIM
+           CMP #'"
+GOTDELIM   RTS
+ 
+STIADDR    LDA WRKBUF
+           STA IADDR
+           LDA WRKBUF+1
+           STA IADDR+1
+           RTS
+ 
+MAPPING    JSR GETDIR   ;Generate bit map of the disc
+           BCS MAPRTS
+           LDY #$20-1   ;Max of 32 bytes
+           LDA #$FF
+FILL       STA (MAPPT),Y
+           DEY
+           BPL FILL
+ANOS       JSR SECCNT
+ANOD       LDY #0
+           LDA (DIRPT),Y
+           EOR DFLAGS
+           BMI MAPEND
+           INY
+           LDA (DIRPT),Y
+           BMI MAP1
+           JSR STDRBT
+MAP1       JSR NXTDIR
+           BCS MAPRTS
+           BNE ANOD
+           BCC ANOS
+MAPEND     LDA DIRMASK
+           AND (MAPPT),Y
+           STA (MAPPT),Y
+           CLC
+MAPRTS     RTS
+ 
+STDRBT     LDY #$10
+NXTB       LDA (DIRPT),Y
+           BEQ SDBRTS
+           STY *TEMP3
+           JSR SETBIT
+           LDY *TEMP3
+           INY
+           CPY #$20
+           BCC NXTB
+SDBRTS     RTS
+ 
+SETBIT     TAY          ;Reverse the status of one bit
+           AND #$07     ;Block # is in [A]
+           TAX
+           TYA
+           LSR A
+           LSR A
+           LSR A
+           TAY
+           LDA DECODE,X
+           EOR (MAPPT),Y
+           STA (MAPPT),Y
+           RTS
+ 
+MKRM       LDY #0       ;Look for free block
+MR1        LDA (MAPPT),Y
+           BNE MR2
+           INY
+           CPY #$20
+           BCC MR1
+DSKFUL     LDA #$52
+           RTS
+MR2        TAX
+           TYA
+           ASL A
+           ASL A
+           ASL A
+           TAY
+           TXA
+           DEY
+MR3        INY
+           LSR A
+           BCC MR3
+           TYA
+           PHA
+           JSR SETBIT   ;Can be SETBIT+1
+           PLA
+           CMP MAX.BLK
+           BCS DSKFUL
+           TAX
+           LDY #BLKIXCT
+           LDA (FCB),Y
+           TAY
+           TXA
+           STA (FCB),Y
+           LDA #1
+           JMP CALC
+ 
+READVERIFY JSR RDINBUF
+           BCC VRTS
+BADVERIFY  JSR DEL
+           BCS VRTS
+           SEC
+           ROR *OD
+           JSR FDFSTF
+           BCS VRTS
+           LDY #BLKIXCT
+           LDA (FCB),Y
+           TAY
+           LDA (FCB),Y
+           PHA
+           JSR CLRDIR
+           PLA
+           STA (FCB),Y
+           DEY
+BV1        LDA BDSG,Y
+           STA (FCB),Y
+           DEY
+           BPL BV1
+           JSR WRTDIR
+           BCS VRTS
+           LDA #$55
+           SEC
+VRTS       RTS
+ 
+CLRDIR     LDY #$20
+           LDA #0
+CD1        DEY
+           STA (FCB),Y
+           CPY #$10
+           BNE CD1
+           RTS
+ 
+ENTER      JSR CHKGD    ;Process RAE's EN function
+           JSR SETUPRAE
+           JSR CHKIV
+           BCS GOERROUT
+           LDA TXST+1
+           STA P1H
+           LDA TXST
+           STA P1L
+           LDA *TXPRES
+           ADC #$02     ;After SETUPRAE C=0,
+           STA P2L      ; USET will clear C
+           LDA *TXPRES+1
+           ADC #0
+           STA P2H
+           JSR SP.SVX
+           BCC BAKTORAE
+           BCS DRER
+LOAD       CPY #80      ;Process LO command
+           BEQ ERROROUT
+           JSR LOADRAE
+BAKTORAE   LDX #$FF
+           TXS
+           JMP RAEHOT
+ 
+CONTTODISK PLA          ;Process .CT
+           PLA
+           PLA
+           PLA
+           LDY #0
+           STY FILENO
+           JSR MVNEXT
+           JSR MVNEXT
+LOADRAE    LDA #$02
+           STA PARNR
+           JSR SETUPRAE
+GOERROUT   BCS ERROROUT
+           JSR MVNEXT
+           LDX #0
+           CPY #80
+           BCC APPEND
+           LDX #TXST-TXPRES
+APPEND     LDA TXPRES,X
+           STA P3L
+           LDA TXPRES+1,X
+           STA P3H
+           JSR CHKIV
+           BCS ERROROUT
+           JSR SETPARMS
+           BCS DRER
+           JSR BEFLOAD
+           BCS DRER
+           LDA P2L
+           TAY
+           SBC TXEN
+           LDA P2H
+           TAX
+           SBC TXEN+1
+           LDA #$0F
+           BCS DRER
+           TYA
+           SBC #1       ;C=0 A=A-2
+           STA *TXPRES
+           BCS RI1
+           DEX
+RI1        STX *TXPRES+1
+           JSR LOX1
+           BCC FITSOK
+DRER       PHA
+           JSR OFF
+           PLA
+           TAX
+           JMP (ERROR)
+FITSOK     RTS
+ 
+CHKGD      CPY #80
+           BNE FITSOK
+ERROROUT   LDX #$50
+           JMP (ERROR)
+ 
+DSKCMD     JSR CHKGD    ;Process Disc Commands
+           LDA RAEBUF,Y :Get input
+           CMP #'K      ;Kill?
+           BEQ DC2
+           CMP #'D      ;Dir?
+           BNE ERROROUT
+           JSR MVNEXT
+           JSR CHKGD
+           STY *TEMP1
+           JSR MVNEXT
+           CPY #80
+           BNE DC1
+           LDY *TEMP1
+           LDA RAEBUF,Y
+           JSR USET
+           JSR SP.DIR1
+           BCS DRER
+           RTS
+ 
+DC1        LDY *TEMP1
+           JSR SETUPRAE
+           JSR SP.DIR2
+           BCS DRER
+           RTS
+ 
+DC2        JSR MVNEXT
+           JSR CHKGD
+           JSR SETUPRAE
+           JSR SCAN
+           JSR SP.DEL
+           BCS DRER
+           BNE KOFF
+           LDA #$53
+           BNE DRER
+KOFF       JMP OFF
+ 
+SETUPRAE   JSR SETPTRS
+           STY *TEMP1
+           LDY #$FF
+           LDX #0
+SUR1       STY *TEMP3
+           LDY *TEMP1
+           LDA RAEBUF,Y
+           INY
+           STY *TEMP1
+           LDY *TEMP3
+           JSR WRTFCB
+           BCS ERROROUT
+           BEQ SUR1
+           LDY *TEMP1
+           DEY
+           DEY
+           JSR MVNEXT
+           JSR CHKGD
+           JMP USET
+ 
+BSAVE      JSR SETUPBAS
+           BCS BASERR
+           JSR CHKIV
+           BCS BASERR50G
+           JSR PSHOVE
+           JSR SP.SVX
+           BCC BSRTS
+BASERRO    PHA
+           JSR OFF
+           PLA
+           .BY $2C
+BASERR50G  LDA #$50
+BASERR     JSR OUTBYT
+           JSR SPACE
+           CMP #$31     ;Not available
+           BEQ SKIPERR
+           CMP #$50     ;Syntax error
+           BEQ SKIPERR
+           CMP #$53     ;Name not found
+           BEQ SKIPERR
+           SEC
+BSRTS      RTS
+ 
+SKIPERR    LDA #L,BADLOAD
+           LDY #H,BADLOAD
+           JSR MSGJMP
+           LDX #$FF
+           TXS
+           JMP WARMJMP
+ 
+BLOAD      JSR GETCHR
+           CMP #':
+           BNE BASERR50G
+           LDY #1
+           STY PARNR
+           LDX *PGMSTL
+           LDY *PGMSTH
+           JSR NXTCHR
+           CMP #'A
+           BNE BL1
+           LDA *PGMENL
+           SBC #2
+           TAX
+           LDA *PGMENH
+           SBC #0
+           TAY
+           INC PARNR
+           JSR NXTCHR
+           CMP #',
+           BNE BASERR50G
+           JSR NXTCHR
+BL1        STX P3L
+           STY P3H
+           JSR SETUPBAS1
+           BCS BASERR
+           JSR CHKIV
+           BCS BASERR50G
+           JSR SETPARMS
+           BCS BASERRO
+           JSR BEFLOAD
+GBASERO    BCS BASERRO
+           LDA P2L
+           CMP *MEMBDL
+           LDA P2H
+           SBC *MEMBDH
+           LDA #$0F
+           BCS GBASERO
+           JSR LOX1
+           BCS GBASERO
+           JSR PSHOVE
+           CLC
+           JMP DUPP1INP3
+ 
+SETUPBAS   JSR GETCHR
+           CMP #':
+           BNE BASERR50C
+           JSR NXTCHR
+SETUPBAS1  CMP #'"
+           BNE BASERR50C
+           JSR SETPTRS
+           LDY #$FF
+           LDX #0
+SUB1       JSR NXTCHR
+           BEQ BASERR50C
+           JSR WRTFCB
+           BCS BASERR50
+           BEQ SUB1
+           JSR NXTCHR
+           BNE BASERR50C
+           LDA P1L
+           JMP USET
+ 
+BASERR50C  SEC
+BASERR50   LDA #$50
+           RTS
+ 
+RAELINK    LDX #11
+RL1        LDA RAELKDT,X
+           STA *DCVEC,X
+           DEX
+           BPL RL1
+           JMP MONENTRY
+ 
+BASLINK    LDA #L,BSAVE
+           STA *BSAVVEC+1
+           LDA #H,BSAVE
+           STA *BSAVVEC+2
+           LDA #L,BLOAD
+           STA *BLODVEC+1
+           LDA #H,BLOAD
+           STA *BLODVEC+2
+           JMP MONENTRY
+ 
+CHK51      CMP #$51
+           SEC
+           BNE C51RTS
+           LDA *OD
+           BMI C51RTS
+           ROL A        ;Clear carry and set A <> 0
+C51RTS     RTS
+ 
+RAELKDT    .SI DSKCMD
+           .BY $01 $00
+           .SI ENTER
+           .SI LOAD
+           .SI 0
+           .SI CONTTODISK
+ 
+BDSG       .BY 'BAD-SEGMENT' $02
+ 
+DECODE     .BY $01 $02 $04 $08 $10 $20 $40 $80
+ 
+           .EN

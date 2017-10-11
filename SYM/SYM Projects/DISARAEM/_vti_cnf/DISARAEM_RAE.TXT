@@ -1,0 +1,9 @@
+vti_encoding:SR|utf8-nl
+vti_timelastmodified:TR|09 Jan 2003 22:41:32 -0000
+vti_extenderversion:SR|4.0.2.2717
+vti_backlinkinfo:VX|sym/symdos2/symdos2.htm
+vti_syncwith_www.gbronline.com\:80/n5fee:TR|09 Jan 2003 22:41:32 -0000
+vti_nexttolasttimemodified:TR|09 Jan 2003 16:15:44 -0000
+vti_author:SR|Dallas
+vti_modifiedby:SR|Dallas
+vti_timecreated:TR|09 Jan 2003 22:41:32 -0000

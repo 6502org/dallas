@@ -1,0 +1,62 @@
+;Example use of the ID sector
+;ID sector is the the first sector of the first track
+;i.e. track 0 sector 1.
+;write the sector using direct DDI command
+;as described in p.7 of SYMDOS2 manual.
+ 
+IDSECT
+;---------------------------------
+;ID mark must be at the beginning of the sector.
+IDMARK     .BY $4B      ;the ID mark,don't touch it
+;---------------------------------
+;the value below is for a 32K RAM system and wish
+;to place the sector buffer of SYMDOS2 at the top
+;of the available RAM.
+;BUFFER .DI $7F80 ;128 byte/sector
+BUFFER     .DI $7F00    ;256 byte/sector
+;BUFFER .DI $7E00 ;512 byte/sector
+;BUFFER .DI $7C00 ;1024 byte/sector
+ 
+;select one of the above four
+ 
+UWRKBUF    .SI BUFFER
+;---------------------------------
+;it is the number of sector per block
+;see the section interface and alternation of
+;SYMDOS2 manual.
+USEC/BLK   .BY 3
+;---------------------------------
+;it is the number of blocks of the diskette - 1
+;see the section interface and alternation.
+UMAX.BLK   .BY 203
+;---------------------------------
+;see the section interface and alternation.
+UDMXSEC    .BY 9        ;3*USEC/BLK
+UDIRMASK   .BY $F8
+;---------------------------------
+;see the section interface and alternation.
+UDIR/LIN   .BY $82
+;=================================
+           .BA IDSECT+$10
+;enter user program starting from here
+;if no program enter a RTS
+;
+;The program below will be executed after cold boot
+;The command lines will be used as input.
+;The format is same as the execute command in SUPERMON
+WRKBUF     .DE $A609
+EXE3       .DE $8851
+P3L        .DE $A64A
+P3H        .DE $A64B
+           LDA #COMMAND-IDSECT
+           CLC
+           ADC WRKBUF
+           STA P3L
+           LDA WRKBUF+1
+           ADC #0
+           STA P3H
+           JMP EXE3+4
+COMMAND    .BY 'GB000' $0D
+           .BY 'SE $700 $27FC $2800 $37FC $3800' $0D
+           .BY $00
+           .EN

@@ -1,0 +1,106 @@
+ 0001             ;THIS MAKE A LIST OF FILES ON A CASSETTE TAPE
+ 0010             .BA $7700
+ 0020             .OS
+ 0030  ID         .DE $9A
+ 0040  SAL        .DE $9B
+ 0050  SAH        .DE $9C
+ 0060  EAL        .DE $9D
+ 0070  EAH        .DE $9E
+ 0080  MODE       .DE $FD
+ 0090  LATCHL     .DE $A004
+ 0100  OUTBYT     .DE $82FA
+ 0110  COMMA      .DE $833A
+ 0120  SPACE      .DE $8342
+ 0130  CRLF       .DE $834D
+ 0140  OUTCHR     .DE $8A47
+ 0150  TSTAT      .DE $8B3C
+ 0160  ACCESS     .DE $8B86
+ 0170  EX10       .DE $8D4E
+ 0180  SYNC       .DE $8D52
+ 0190  START      .DE $8DA9
+ 0200  RDCHTX     .DE $8DE1
+ 0210  RDBYTH     .DE $8DE5
+ 0220  RDBYTX     .DE $8E26
+ 0250  BEGIN      JSR ACCESS
+ 0260             LDY #$80
+ 0270  NXT.FILE   JSR START
+ 0280             LDA #$1F
+ 0290             STA LATCHL
+ 0300  FIND       JSR SYNC
+ 0310  READ       JSR RDCHTX
+ 0320             CMP #'*
+ 0330             BEQ TEST
+ 0340             CMP #$16
+ 0350             BNE FIND
+ 0360             BEQ READ
+ 0370  TEST       LDA *MODE
+ 0380             AND #$BF
+ 0390             STA *MODE
+ 0400             JSR RDBYTX
+ 0410             STA *ID
+ 0420             JSR RDBYTX
+ 0430             STA *SAL
+ 0440             JSR RDBYTX
+ 0450             STA *SAH
+ 0460             JSR RDBYTH
+ 0470             STA *EAL
+ 0480             JSR RDBYTH
+ 0490             STA *EAH
+ 0500             JSR CRLF
+ 0510             LDA #'.
+ 0520             JSR OUTCHR
+ 0530             LDA #'S
+ 0540             JSR OUTCHR
+ 0550             LDA #'2
+ 0560             JSR OUTCHR
+ 0570             JSR SPACE
+ 0580             LDA *ID
+ 0590             JSR OUTBYT
+ 0600             JSR COMMA
+ 0610             LDA *SAH
+ 0620             JSR OUTBYT
+ 0630             LDA *SAL
+ 0640             JSR OUTBYT
+ 0650             JSR COMMA
+ 0660             DEC *EAL
+ 0670             LDA *EAL
+ 0680             CMP #$FF
+ 0690             BNE CONT
+ 0700             DEC *EAH
+ 0710  CONT       LDA *EAH
+ 0720             JSR OUTBYT
+ 0730             LDA *EAL
+ 0740             JSR OUTBYT
+ 0750             JSR CRLF
+ 0760             JMP EX10
+//
+
+>PR 0010             DDI2 has two standard entry points:
+ 0020   
+ 0030  DESELECT   ($9A03)
+ 0040             DESELECT will intrepret the control code in IFLAGS. If you want
+ 0050  to         trun off the drive(s), you should store 00 in IFLAGS and then call
+ 0060  DESELECT.
+ 0070   
+ 0080   
+ 0090  DISKIO     ($9A00)
+ 0100             The value in accumulator is the command code. Valid command codes
+ 0110  are        0 to 6 and 8. The functions of each command are:
+ 0120   
+ 0130  0:         initialization
+ 0140             Determine the drive size and initialize IRQ vector.
+ 0150  1:         restore the drive and set diskette parameters.
+ 0160             i.e. find the density,sector length,sectors per track.
+ 0170  2:         restore the drive only.
+ 0180  3:         seek track, track number in ITRACKS.
+ 0190  4:         read sector, track number in ITRACKS, secotr number in ISECTR,
+ 0200             transfer address in IADDRS (2 bytes).
+ 0210  5:         write sector, others same as 4.
+ 0220  6:         user define function. Jump to $a614 when invoked.
+ 0230             It is used by FORMAT and FMT&CPY to do track formatting.
+ 0240  8:         read the 2nd to 8th byte oID sector if 1st byte is IDMARK.
+ 0250             The data is stored at $A609-$A610.
+ 0260   
+ 0270  All        commands return with carry set if error occurs and error code is
+ 0280  stored     in accumulator.
+ 0290   

@@ -1,0 +1,320 @@
+ 0010             .LS
+ 0020             ;THIS PROGRAM IS FOR USE WITH THE 2716/2532 BOARD
+ 0030             ;
+ 0040             .OS
+ 0050             .BA $0400
+ 0060             JMP COLDST
+ 0070             .BY 'SAVED AS E2716.RAE 11-24-87'
+ 0080  BEEP       .DE $8972
+ 0090  MONITOR    .DE $8000
+ 0100  OUT2HEX    .DE $82FA
+ 0110  CRLF       .DE $834D
+ 0120  OUTCHR     .DE $8A47
+ 0130  INCHR      .DE $8A1B
+ 0140  CKBRK      .DE $8B3C
+ 0150             ;
+ 0160  TIMER      .DE $A417    ;NO IRQ SAME AS A41F
+ 0170  TIMERUP    .DE $A405
+ 0180             ;
+ 0190  D0>D7      .DE $A801
+ 0200  A0>A7      .DE $A800
+ 0210  A8>A10     .DE $AC00
+ 0220  OE.CE.PRG  .DE $A80C
+ 0230             ;
+ 0240  PADDR1     .DE $A803
+ 0250  PBDDR1     .DE $A802
+ 0260  PBDDR2     .DE $AC02
+ 0270             ;
+ 0280  BPTR.L     .DE $E0
+ 0290  BPTR.H     .DE $E1
+ 0300  ENDPAGE    .DE $E2
+ 0310  MSGPTR.L   .DE $E3
+ 0320  MSGPTR.H   .DE $E4
+ 0330  TEMP       .DE $E5
+ 0340             ;
+ 0350             ;
+ 0360  COLDST     JSR INIT     ;INIT I.O AND INSERT EPROM
+ 0370  WARM       LDA #L,MSG.1         ;OUTPUT MENU
+ 0380             STA MSGPTR.L
+ 0390             LDA #H,MSG.1
+ 0400             STA MSGPTR.H
+ 0410             JSR MSGOUT
+ 0420             LDA #'#      ;PROMPT
+ 0430             JSR OUTCHR
+ 0440             JSR INCHR    ;GET CMD
+ 0450             CMP #'P      ;PROGRAM
+ 0460             BNE NOPROG
+ 0470             JSR PROG
+ 0480             JMP WARM
+ 0490             ;
+ 0500  NOPROG     CMP #'C      ;COPY
+ 0510             BNE NO.C
+ 0520             JSR COPY
+ 0530             JMP WARM
+ 0540             ;
+ 0550  NO.C       CMP #'V      ;VERIFY EPROM AND BUFFER
+ 0560             BNE NO.V
+ 0570             JSR VERIFY
+ 0580             JMP WARM
+ 0590             ;
+ 0600  NO.V       CMP #'B      ;CHECK FOR BLANK EPROM
+ 0610             BNE NO.B
+ 0620             JSR BLANK
+ 0630             JMP WARM
+ 0640             ;
+ 0650  NO.B       CMP #'S      ;STOP AND REMOVE EPROM
+ 0660             BNE NO.S
+ 0670             JSR STOP
+ 0680             JMP COLDST
+ 0690             ;
+ 0700  NO.S       CMP #'M      ;RETURN TO MONITOR
+ 0710             BNE NO.M
+ 0720             JSR VIA.IN
+ 0730             JMP MONITOR
+ 0740             ;
+ 0750  NO.M       LDA #'?      ;BAD CMD TRY AGAIN
+ 0760             JSR OUTCHR
+ 0770             JMP COLDST
+ 0780             ;
+ 0790             ;
+ 0800             ;
+ 0810  INIT       JSR VIA.IN   ;SET ALL I.O LINES AS INPUTS
+ 0820  NO.CHR     LDA #L,MSG.3         ;AND 25 VOLTS OFF
+ 0830             STA MSGPTR.L
+ 0840             LDA #H,MSG.3
+ 0850             STA MSGPTR.H
+ 0860             JSR MSGOUT   ;INSERT EPROM AND TURN PWR ON
+ 0870             JSR INCHR
+ 0880             CMP #$0D     ;WAIT FOR CR
+ 0890             BNE NO.CHR
+ 0900             RTS
+ 0910             ;
+ 0920             ;
+ 0930             ;
+ 0940  PROG       LDA #L,MSG.2         ;PROGRAM THE EPROM
+ 0950             STA MSGPTR.L
+ 0960             LDA #H,MSG.2
+ 0970             STA MSGPTR.H
+ 0980             JSR MSGOUT   ;DO YOU WANT TO PROG
+ 0990             JSR INCHR
+ 1000             CMP #'Y      ;MUST ANSWER YES
+ 1010             BNE ABORT
+ 1020             LDX #$FF
+ 1030             JSR CONFIGPROG       ;SET DATA LINES AS OUTPUTS
+ 1040             JSR V25ON    ;AND ADDR LINES OUTPUTS
+ 1050  NEXT       JSR ADDROUT  ;OUTPUT ADDRESS TO EPROM
+ 1060             LDA ($E0),Y  ;GET BUFFER CONTENTS
+ 1070             CMP #$FF
+ 1080             BEQ SKIPIT   ;NO NEED TO PROG FF'S
+ 1090             STA D0>D7    ;OUTPUT GOOD BYTE TO EPROM
+ 1100             LDA #$30
+ 1110             STA TIMER    ;START 50 MS TIMER
+ 1120             LDA #%11101110       ;SET CA2 IE PRG=1 (18)
+ 1130             STA OE.CE.PRG        ;SET CB2 IE OE*= 1 (20)
+ 1140  MORETIME   BIT TIMERUP  ;WAIT FOR END OF 50 MS.
+ 1150             BPL MORETIME
+ 1160             LDA #%11101100       ;CLR CA2 IE PRG = 0 (18)
+ 1170             STA OE.CE.PRG        ;SET CB2 IE OE* = 1 (20)
+ 1180  SKIPIT     JSR INCADDR  ;GET NEXT ADDRESS
+ 1190             BCS NEXT
+ 1200             JSR V25OFF
+ 1210             LDA #%11001100
+ 1220             STA OE.CE.PRG        ;MAKE CA2 CB2 =0 (18)(20)
+ 1230             ;
+ 1240             LDA #$2F
+ 1250  DLY        JSR BEEP
+ 1260             SBC #$01
+ 1270             BNE DLY
+ 1280             ;
+ 1290  ABORT      RTS
+ 1300             ;
+ 1310             ;
+ 1320             ;
+ 1330  V25ON      LDA A8>A10   ;TURN 25 VOLTS ON
+ 1340             AND #%11101111
+ 1350             STA A8>A10   ;CLEAR PB4
+ 1360             RTS
+ 1370             ;
+ 1380             ;
+ 1390             ;
+ 1400  V25OFF     LDA A8>A10   ;TURN 25 VOLTS OFF
+ 1410             ORA #%00010000
+ 1420             STA A8>A10   ;SET PB4
+ 1430             RTS
+ 1440             ;
+ 1450             ;
+ 1460             ;
+ 1470  COPY       LDX #$00     ;COPY EPROM CONTENTS INTO RAM BUF
+ 1480             JSR CONFIG.RD
+ 1490  COPYMORE   JSR ADDROUT
+ 1500             LDA D0>D7    ;GET EPROM DATA
+ 1510             STA (BPTR.L),Y       ;TO RAM BUFFER
+ 1520             JSR INCADDR  ;NEXT
+ 1530             BCS COPYMORE
+ 1540             RTS
+ 1550             ;
+ 1560             ;
+ 1570             ;
+ 1580  VERIFY     LDX #$00     ;VERIFY EPROM AND BUFFER MATCH
+ 1590             JSR CONFIG.RD        ;SET DATA LINES TO READ
+ 1600  VER.MORE   JSR ADDROUT  ;ADDRESS TO EPROM
+ 1610             LDA (BPTR.L),Y       ;GET BUFFER CONTENTS
+ 1620             CMP D0>D7    ;DO THEY MATCH
+ 1630             BEQ VER.OK
+ 1640             JSR NO.MATCH         ;PRINT BAD BYTES
+ 1650  VER.OK     JSR INCADDR  ;NEXT ONE
+ 1660             BCS VER.MORE
+ 1670             RTS
+ 1680             ;
+ 1690             ;
+ 1700             ;
+ 1710  BLANK      LDX #$00     ;MAKE SURE THE EPROM IS BLANK
+ 1720             JSR CONFIG.RD        ;DATA LINES INPUTS
+ 1730  CK.NEXT    JSR ADDROUT  ;ADDRESS TO EPROM
+ 1740             LDA #$FF
+ 1750             CMP D0>D7
+ 1760             BEQ IS.FF
+ 1770             JSR NO.MATCH         ;PRINT BAD BYTES
+ 1780  IS.FF      JSR INCADDR  ;NEXT ADDRESS
+ 1790             BCS CK.NEXT
+ 1800             RTS
+ 1810             ;
+ 1820             ;
+ 1830             ;
+ 1840  VIA.IN     LDY #$00     ;ALL EPROM ADDR AND DATA INPUTS
+ 1850             STY OE.CE.PRG VIA3 BIT PB4 IS BUFFERED
+ 1860             STY PADDR1   ;ON THE SYM MAKING IT AN INPUT
+ 1870             STY PBDDR1   ;CAUSES THE 25 V TO BE TURNED OFF
+ 1880             STY PBDDR2   ;BECAUSE OF THE EXTERNAL XSISTORS
+ 1890             RTS
+ 1900             ;
+ 1910             ;
+ 1920             ;
+ 1930  CONFIGPROG LDA #%11101100       ;SET CB2 IE OE* = 1 (20)
+ 1940             STA OE.CE.PRG        ;CLR CA2 IE CE* = 0 (18)
+ 1950             CLC
+ 1960             BCC CONFIG   ;FORCE BRANCH
+ 1970             ;
+ 1980  CONFIG.RD  LDA #%11001100       ;CLR CB2 IE OE* = 0
+ 1990             STA OE.CE.PRG        ;CLR CA2 IE CE* = 0
+ 2000             ;
+ 2010  CONFIG     STX PADDR1   ;ROM DATA LINES IN OR OUT
+ 2020             LDA #$10     ;PB4 OUTPUT FOR 25 V CONTROL
+ 2030             STA A8>A10   ;MAKE SURE THE 25 STAYS OFF
+ 2040             LDA #$FF     ;ALL ADDR LINES OUTPUTS
+ 2050             STA PBDDR1
+ 2060             STA PBDDR2
+ 2070             ;
+ 2080             LDA #$00     ;INITIALIZE BUFFER POINTER
+ 2090             TAY
+ 2100             STA BPTR.L   ;BUFFER FROM $800 - $FFF
+ 2110             CLC
+ 2120             LDA #$08
+ 2130             STA BPTR.H   ;START BUFFER AT $0800
+ 2140             ADC #$08     ;ADD 2K TO IT
+ 2150             STA ENDPAGE  ;REMEMBER LAST PAGE
+ 2160             RTS
+ 2170             ;
+ 2180             ;
+ 2190             ;
+ 2200  ADDROUT    LDA BPTR.L   ;PUT ADDRESS TO EPROM LINES
+ 2210             STA A0>A7    ;BYTE POINTER TO EPROM
+ 2220             LDA A8>A10   ;GET 25 V & A8-A10
+ 2230             AND #$10     ;MASK & LEAVE 25 V BIT
+ 2240             STA TEMP
+ 2250             LDA BPTR.H   ;GET NEW ADDRESS
+ 2260             AND #$07     ;ONLY USE B2-B0
+ 2270             ORA TEMP     ;RESTORE 25 V SIG
+ 2280             STA A8>A10   ;BACK TO EPROM
+ 2290             RTS
+ 2300             ;
+ 2310             ;
+ 2320             ;
+ 2330             ;
+ 2340  INCADDR    INC BPTR.L   ;INC BUFFER POINTER
+ 2350             BNE NOTFIN   ;RET WITH C = 1 IF NOT THRU
+ 2360             INC BPTR.H
+ 2370             LDA BPTR.H
+ 2380             CMP ENDPAGE
+ 2390             BNE NOTFIN
+ 2400             CLC  ;RET WITH C = 0 IF FINISHED
+ 2410             RTS
+ 2420             ;
+ 2430  NOTFIN     SEC  ;RET WITH C = 1 IF NOT THRU
+ 2440             RTS
+ 2450             ;
+ 2460             ;
+ 2470             ;
+ 2480  NO.MATCH   PHA  ;      PRINT AAAA DDDD EEEE
+ 2490             LDA BPTR.H   ;    ADDR BUFF EPROM
+ 2500             JSR OUT2HEX
+ 2510             LDA BPTR.L
+ 2520             JSR OUT2HEX
+ 2530             LDA #$20
+ 2540             JSR OUTCHR
+ 2550             PLA
+ 2560             JSR OUT2HEX  ;PRINT BUFFER CONTENTS
+ 2570             LDA #$20
+ 2580             JSR OUTCHR
+ 2590             LDA D0>D7
+ 2600             JSR OUT2HEX  ;PRINT EPROM CONTENTS
+ 2610             JSR CRLF
+ 2620             JSR CKBRK    ;CK BRK KEY 
+ 2630             BCC NOBRK
+ 2640             PLA  ;IF BRK DOWN CLEAR STACK AND RET
+ 2650             PLA
+ 2660  NOBRK      RTS
+ 2670             ;
+ 2680             ;
+ 2690             ;
+ 2700  STOP       JSR VIA.IN   ;ALL LINES INPUTS AND 25 V OFF
+ 2710             LDA #L,MSG.4
+ 2720             STA MSGPTR.L
+ 2730             LDA #H,MSG.4
+ 2740             STA MSGPTR.H
+ 2750             JSR MSGOUT   ;TURN PWR OFF PRESS
+ 2760             JSR INCHR    ;ANY KEY
+ 2770             RTS
+ 2780             ;
+ 2790             ;
+ 2800             ;
+ 2810  MSGOUT     LDA (MSGPTR.L),Y     ;PRINT MSG POINTED AT
+ 2820             CMP #$04
+ 2830             BEQ QUIT
+ 2840             JSR OUTCHR
+ 2850             INC MSGPTR.L
+ 2860             BNE MSGOUT
+ 2870             INC MSGPTR.H
+ 2880             JMP MSGOUT
+ 2890  QUIT       RTS
+ 2900             .LC
+ 2910             ;
+ 2920             ;
+ 2930             ;
+ 2940             ;
+ 2950  MSG.1      .BY $0D $0A '2716 PROGRAMER' $0D $0A
+ 2960             .BY 'DALLAS SHELL 11-24-87  REV 2.2' $0D $0A
+ 2970             .BY 'BUFFER FROM $0800 - $0FFF' $0D $0A $0A
+ 2980             .BY ' C ---COPY EPROM INTO BUFFER' $0D $0A
+ 2990             .BY ' P ---PROGRAM   APROX TIME 1.5 MIN ' $0D $0A
+ 3000             .BY ' V ---VERIFY EPROM AND BUFFER AGREE ' $0D $0A
+ 3010             .BY ' B ---CHECK IF EPROM IS BLANK' $0D $0A
+ 3020             .BY ' S ---STOP ' $0D $0A
+ 3030             .BY ' M ---RETURN TO MONITOR ' $0D $0A $0A $04
+ 3040             ;
+ 3050             ;
+ 3060  MSG.2      .BY $0D $0A 'DO YOU WANT TO PROGRAM ?' $04
+ 3070             ;
+ 3080             ;
+ 3090  MSG.3      .BY $0A $0D $0A $0A '2716 PROGRAMER' $0D  $0A
+ 3100             .BY 'FOR USE WITH THE 2716/2532 BOARD' $0D $0A $0A
+ 3110             .BY $0D $0A 'INSERT EPROM AND TURN POWER ON THEN PRESS CR' $0D $0A
+ 3120             .BY $04
+ 3130             ;
+ 3140             ;
+ 3150             ;
+ 3160  MSG.4      .BY $0D $0A 'TURN POWER OFF THEN PRESS ANY KEY' $04
+ 3170             .EN
+//
+
+>

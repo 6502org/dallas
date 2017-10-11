@@ -1,0 +1,319 @@
+;////////////////////////
+;/  FORMAT DISK UTIITY  /
+;/ COPYRIGHT SEP 83     /
+;/ BY KIN-PING KWOK     /
+;////////////////////////
+           .BA $2800
+           .OS
+FMTWRK     .DE $FE
+SECCTR     .DE $FF
+SECLEN     .DE $03
+FTERMA     .DE %11000100
+ERMSG      .DE $8171
+INCHR      .DE $8A1B
+OUTCHR     .DE $8A47
+PARM       .DE $8220
+CRLF       .DE $834D
+PARNR      .DE $A649
+P1L        .DE $A64E
+P2L        .DE $A64C
+P3L        .DE $A64A
+UFLAGS     .DE $A61B
+FORMAT     LDX #MSG1-MSG
+           JSR OUTMSG
+           JSR INCHR
+           JSR CRLF
+           CMP #'3
+           BCS FORMAT
+           CMP #'1
+           BCC FORMAT
+           AND #$0F
+           CMP #$2
+           BNE CMD1
+           RTS
+CMD1       CMP #1
+           BNE FORMAT
+           LDX #MSG2-MSG
+           JSR OUTMSG
+           JSR PARM
+           BNE F50ERR
+           LDA PARNR
+           CMP #3
+           BNE F50ERR
+           LDA #0
+           STA ITRACK
+           LSR P1L
+           ROL A
+           STA IDRIVE
+           LDA P1L
+           LSR A
+           ROR ITRACK
+           STA UFLAGS
+           LDA #$3
+           STA ISECTR
+           LDA P3L
+           ASL A
+           LSR P2L
+           ROR A
+           AND #$83
+           ORA #$20
+           STA DFLAGS
+FMTDSK     LDA #$4C     ;JMP
+           STA RDADBUF
+           STA RDADBUF+3
+           LDA #L,DDIFT
+           STA RDADBUF+1
+           LDA #H,DDIFT
+           STA RDADBUF+2
+           LDA #L,FTIRQ
+           STA RDADBUF+4
+           LDA #H,FTIRQ
+           STA RDADBUF+5
+           LDA #2
+           JSR DISKIO
+           BCS FD2
+FD1        LDA #$6
+           JSR DISKIO
+           BCS FD2
+           INC ITRACK
+           LDA ITRACK
+           AND #$7F
+           CMP NOTRKS
+           BCC FD1
+FDDESEL    LDA #$00
+           STA IFLAGS
+           JSR DESELECT
+           JMP FORMAT
+FDRTS      RTS
+F50ERR     LDA #$50
+           BNE FD3
+FD2        PHA
+           LDA #$00
+           STA IFLAGS
+           JSR DESELECT
+           PLA
+FD3        SEC
+           JSR ERMSG
+           JMP FORMAT
+DDIFT      JSR SEEK
+           BCS FDRTS
+           JSR MOVEPARMS
+           BCS FDRTS
+           JSR BLDSEQ
+FMTT.1     LDA DFLAGS
+           AND #SECLEN
+           CMP #$03
+           ADC #0
+           STA *FMTWRK
+           STA *RETRIES
+           LDX #12
+           LDA #0
+           STA *SECCTR
+           LDA #C.WRITTRK
+           CLV
+           CLI
+           LDY #3
+           STA CMDREG
+           LDA PADCHR
+           JSR WRTMCHR
+           BIT FFLAGS
+           BMI FORM.2
+           LDY NOPAD5
+           JSR WRTMCHR
+           TYA
+           LDY NOZERO
+           JSR WRTMCHR
+           LDY NOSPCH
+           BEQ FORM.1
+           LDA #$F6
+           JSR WRTMCHR
+FORM.1     LDA #$FC
+           JSR WRTCHR
+FORM.2     LDY NOPAD1
+           LDA PADCHR
+           JSR WRTMCHR
+WRTSEC     TYA
+           LDY NOZERO
+           JSR WRTMCHR
+           LDY NOSPCH
+           BEQ FORM.3
+           LDA #$F5
+           JSR WRTMCHR
+FORM.3     LDA #$FE
+           JSR WRTCHR
+           LDA ITRACK
+           AND #$7F
+           JSR WRTCHR
+           LDA ITRACK
+           ASL A
+           LDA #0
+           ROL A
+           JSR WRTCHR
+           LDY *SECCTR
+           LDA SECSEQ,Y
+           JSR WRTCHR
+           LDA DFLAGS
+           AND #SECLEN
+           JSR WRTCHR
+           LDA #$F7
+           JSR WRTCHR
+           LDY NOPAD2
+           LDA PADCHR
+           JSR WRTMCHR
+           TYA
+           LDY NOZERO
+           JSR WRTMCHR
+           LDY NOSPCH
+           BEQ FORM.5
+           LDA #$F5
+           JSR WRTMCHR
+FORM.5     LDA #$FB
+           JSR WRTCHR
+           LDY #$80
+           LDA *FMTWRK
+           BEQ FT2
+           LDY #0
+FT2        LDA DATPAT
+FT3        JSR WRTMCHR
+           DEC *RETRIES
+           BEQ FT4
+           BPL FT3
+FT4        LDA #$F7
+           JSR WRTCHR
+           LDA *FMTWRK
+           STA *RETRIES
+           INC *SECCTR
+           LDY *SECCTR
+           LDA PADCHR
+           JSR WRTCHR
+           CPY NOSECS
+           BEQ FINAL
+           LDY NOPAD3
+           JSR WRTMCHR
+           JMP WRTSEC
+FINAL      LDY #$02
+FL1        DEY
+FL2        BVC FL2
+           STA DATREG
+           CLV
+           INY
+           BNE FL2
+           BEQ FL1
+FTIRQ      AND #FTERMA
+           BNE FTI1
+           STY *RETRIES
+           CLC
+           RTS
+FTI1       LDY #0
+           STY *RETRIES
+           JMP RECOVER
+WRTMCHR    BVC WRTMCHR
+           STA DATREG
+           CLV
+           DEY
+           BNE WRTMCHR
+           RTS
+WRTCHR     BVC WRTCHR
+           STA DATREG
+           CLV
+           RTS
+MOVEPARMS  LDY #$00
+           BIT DFLAGS
+           BPL MVP.1
+           INY
+MVP.1      LDX #$05
+MVP.2      LDA FMTTBL,Y
+           STA FMTPRM,X
+           INY
+           INY
+           DEX
+           BPL MVP.2
+           TYA
+           AND #$01
+           TAY
+           BIT FFLAGS
+           BMI MVP.3
+           INY
+           INY
+MVP.3      LDA GAP1TB,Y
+           STA NOPAD1
+           LDA DFLAGS
+           AND #SECLEN
+           STA *WKAREA
+           TYA
+           ASL A
+           ASL A
+           ORA *WKAREA
+           TAY
+           LDA SECTBL@,Y
+           STA NOSECS
+           LDA GAP3TB,Y
+           STA NOPAD3
+           RTS
+BLDSEQ     LDY NOSECS
+           DEY
+           LDA #$FF
+BLSQ.1     STA SECSEQ,Y
+           DEY
+           BPL BLSQ.1
+           INY
+           LDA #$01
+           STA SECSEQ,Y
+           LDX #$02
+BLSQ.2     TYA
+           CLC
+           ADC ISECTR
+BLSQ.3     TAY
+           SEC
+           SBC NOSECS
+           BCS BLSQ.3
+           LDA SECSEQ,Y
+           BMI BLSQ.4
+           INY
+           TYA
+           BNE BLSQ.3
+BLSQ.4     TXA
+           STA SECSEQ,Y
+           INX
+           CPX NOSECS
+           BEQ BLSQ.2
+           BCC BLSQ.2
+           RTS
+OUTMSG     LDA MSG,X
+           BEQ OMRTS
+           JSR OUTCHR
+           INX
+           BNE OUTMSG
+OMRTS      RTS
+MSG
+MSG1       .BY $0D $0A 'FORMAT UTILITY PROGRAM' $0D $0A
+           .BY 'SELECT ONE OF THE FOLLOWING' $0D $0A
+           .BY '1) FORMAT DISKETTE' $0D $0A
+           .BY '2) QUIT' $0D $0A
+           .BY $0D $0A 'ENTER ' $00
+MSG2       .BY 'unit,den,seclen ' $00
+FMTTBL
+DATATB     .BY $E5 $40
+PADTBL     .BY $FF $4E
+GAP2TB     .BY 11 22
+GAP5TB     .BY 37 77
+ZEROTB     .BY 06 12
+SPCHTB     .BY 00 03
+GAP1TB     .BY 13 27 26
+SECTBL@    .BY 18 10 05 02
+           .BY 30 18 09 05
+           .BY 26 15 08 04
+GAP3TB     .BY 09 19 73 254
+           .BY 13 23 69 119
+           .BY 26 47 89 223
+FMTPRM
+NOSPCH     .DS 1
+NOZERO     .DS 1
+NOPAD5     .DS 1
+NOPAD2     .DS 1
+PADCHR     .DS 1
+DATPAT     .DS 1
+NOPAD1     .DS 1
+NOPAD3     .DS 1
+SECSEQ     .DS 26
+           .EN

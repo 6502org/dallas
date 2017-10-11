@@ -1,0 +1,80 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>New Page 2</title>
+</head>
+
+<body>
+
+<p>Here are a few Projects I have made for the SYM</p>
+<p><b>EPROM Programmers:</b> </p>
+<p>It should be noted that the EPROM programmers listed below were developed as
+the need arose to have a particular chip programmer.&nbsp; The they are listed
+roughly in the order that they were developed.&nbsp; </p>
+<p>All of the designs used a simple LM 723 voltage regulator circuit to supply
+the 21, 25 and 27 volts as required.&nbsp; I built a separate LM723 circuit for
+each voltage required. This low current supply was built on the same supply that
+supplied the SYM +5 volts.&nbsp; These can be seen in the <a href="sym_power_supply.htm">photo</a>
+of the power supply.&nbsp;&nbsp; Each voltage was adjusted and available without
+the need to re-adjust anything.&nbsp; Here is the design <a href="lm723%20supply.PDF">notes</a>
+for the LM 723 circuit for the 2708 EPROM others are similar. </p>
+<p>&nbsp;The Universal board that is listed at the end could be modified to
+handle some of the earlier chips, but by the time I had evolved to build the
+Universal Programmer, I already had the earlier boards built and it would have
+been a waist of time to re-write the code for the earlier chips.&nbsp; </p>
+<p>If I were going to build a board to program the 2532 today for instance, I
+would build the Universal Programmer design rather than the 2716/2532 design,
+because the Universal can easily be adapted to many other chips.&nbsp; The
+Universal Programmer can handle a 28 pin device or up to a 27256 or 32k
+chip.&nbsp; A 16 pin DIP header &quot;personality module&quot; is plugged into
+the board to set up the signals for the various chip pin outs.&nbsp; Modifying
+the design to accommodate a new chip is simply a matter of making a new header
+plug and modifying the SYM code to do the programming. </p>
+<p><a href="2708%20EPROM%20Burner/Description.htm"> &nbsp;2708</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Programs 2708 Chips&nbsp;</p>
+<p><a href="2716-2532%20EPROM%20BURNER/2716-2532.htm"> &nbsp;2716/2532</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Programs 2716 and 2532 Chips</p>
+<p>&nbsp;</p>
+<p><b>Universal Programmer</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+<p>
+One board that will handle a variety of chips.&nbsp; A small jumper block&nbsp;
+is plugged onto the board to select the type of chip to be used.&nbsp; The
+following chips are currently supported.&nbsp; Other chips may be easily
+programmed by making new personality jumper blocks and modifying the programmer
+program code.&nbsp;&nbsp;Here are <a href="Universal%20Programmer/photo_of_universal_programmer.htm">photos</a>
+of the board.</p>
+<p>To make a programmer for a different chip first study and update the <a href="Universal%20Programmer/pinout.PDF">EPROM
+pin-out</a> chart.&nbsp; Then markup the <a href="Universal%20Programmer/universal%20worksheet.PDF">worksheet</a>.&nbsp;
+After marking up the worksheet, make a new header plug based on the worksheet
+(small circles are pins on the header plug-socket).&nbsp; Then modify the source
+code for the closest chip size I have already done.&nbsp; After studying the
+completed chips, it will be obvious the changes that need to be made.&nbsp; All
+of the source code is pretty well documented.&nbsp; Note again that the PB4
+signal at the SYM connector Y has been buffered thru one of the SYM on board
+jumperable transistors.&nbsp; This could be moved off of the SYM board if
+desired.&nbsp; The SYM came with these buffer transistors in the circuit and I
+just used the SYM as it was wired.</p>
+<p>2732&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="2732%20DWG.PDF">Drawing</a>&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="2732%20RAE.TXT">Source Code</a>&nbsp;&nbsp;&nbsp; <a href="2732%20OBJ.TXT">SYM object
+code</a></p>
+<p>2764&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="2764%20DWG.PDF">Drawing</a>&nbsp;&nbsp;&nbsp;
+<a href="2764_RAE.TXT">Source Code</a>&nbsp;&nbsp;&nbsp; <a href="2764_OBJ.TXT">object code</a></p>
+<p>27128&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="27128%20DWG.PDF">Drawing</a>&nbsp;&nbsp;&nbsp;
+<a href="27128%20rae.TXT">Source Code</a>&nbsp;&nbsp;&nbsp;&nbsp;</p>
+<p>All of these programmers have been used extensively EXCEPT THE 27128
+model.&nbsp; This 27128 model has been built but I do not remember using
+it.&nbsp; I would proceed with caution on this design.&nbsp; It looks ok,&nbsp;
+but I am watchful on any new design until it has a dozen or more uses.</p>
+<p>Larger EPROM chips that exceed the my 32k RAM size could also be programmed
+by splitting the EPROM into sections and doing half at a time and so on.&nbsp;
+The programming source code would not vary much.</p>
+<p>&nbsp;</p>
+<p>&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; </p>
+
+</body>
+
+</html>

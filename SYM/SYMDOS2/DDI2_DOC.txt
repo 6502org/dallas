@@ -1,0 +1,32 @@
+ 0010             DDI2 has two standard entry points:
+ 0020   
+ 0030  DESELECT   ($9A03)
+ 0040             DESELECT will intrepret the control code in IFLAGS. If you want
+ 0050  to         trun off the drive(s), you should store 00 in IFLAGS and then call
+ 0060  DESELECT.
+ 0070   
+ 0080   
+ 0090  DISKIO     ($9A00)
+ 0100             The value in accumulator is the command code. Valid command codes
+ 0110  are        0 to 6 and 8. The functions of each command are:
+ 0120   
+ 0130  0:         initialization
+ 0140             Determine the drive size and initialize IRQ vector.
+ 0150  1:         restore the drive and set diskette parameters.
+ 0160             i.e. find the density,sector length,sectors per track.
+ 0170  2:         restore the drive only.
+ 0180  3:         seek track, track number in ITRACKS.
+ 0190  4:         read sector, track number in ITRACKS, secotr number in ISECTR,
+ 0200             transfer address in IADDRS (2 bytes).
+ 0210  5:         write sector, others same as 4.
+ 0220  6:         user define function. Jump to $a614 when invoked.
+ 0230             It is used by FORMAT and FMT&CPY to do track formatting.
+ 0240  8:         read the 2nd to 8th byte oID sector if 1st byte is IDMARK.
+ 0250             The data is stored at $A609-$A610.
+ 0260   
+ 0270  All        commands return with carry set if error occurs and error code is
+ 0280  stored     in accumulator.
+ 0290   
+//
+
+>

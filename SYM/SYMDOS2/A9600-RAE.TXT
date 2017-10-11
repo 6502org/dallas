@@ -1,0 +1,95 @@
+ 0005  ;9600 BAUD TERMINAL PATCH
+ 0010             .BA $7000
+ 0020             .OS
+ 0030  SAVER      .DE $8188
+ 0040  PBDA       .DE $A402
+ 0050  TOUTFL     .DE $A654
+ 0060  TECHO      .DE $A653
+ 0070  INVEC      .DE $A661
+ 0080  OUTVEC     .DE $A664
+ 0090  ORB        .DE $A800
+ 0100  DDRB       .DE $A802
+ 0110  PCR        .DE $A80C
+ 0120  USRENT     .DE $8035
+ 0130  RESXAF     .DE $81B8
+ 0140  RESALL     .DE $81C4
+ 0150  ACCESS     .DE $8B86
+ 0160  !!!SL      .MD (ROUTINE LINK)
+ 0170             LDA #L,ROUTINE
+ 0180             STA LINK
+ 0190             LDA #H,ROUTINE
+ 0200             STA LINK+1
+ 0210             .ME
+ 0220             JSR ACCESS
+ 0230             SL (TOUT OUTVEC)
+ 0240             SL (INTCHR INVEC)
+ 0250             RTS
+ 0260  INTCHR     JSR SAVER
+ 0270             LDA #0
+ 0280             STA *$F9
+ 0290  LOOK       LDA PBDA
+ 0300             AND TOUTFL
+ 0310             SEC
+ 0320             SBC #$40
+ 0330             BCC LOOK
+ 0340  TIN        LDY #6
+ 0350  TLP2       DEY
+ 0360             BNE TLP2
+ 0370             LDA PBDA
+ 0380             AND TOUTFL
+ 0390             SEC
+ 0400             SBC #$40
+ 0410             BIT TECHO
+ 0420             BPL DMY1
+ 0430             JSR OUT
+ 0440             JMP SAVE
+ 0450  DMY1       LDY #7
+ 0460  TLP1       DEY
+ 0470             BNE TLP1
+ 0480             NOP
+ 0490  SAVE       ROR *$F9
+ 0500             NOP
+ 0510             PHA
+ 0520             PLA
+ 0530             BCC TIN
+ 0540             LDY #8
+ 0550  TLP3       DEY
+ 0560             BNE TLP3
+ 0570             CLC
+ 0580             JSR OUT
+ 0590             LDA *$F9
+ 0600             EOR #$FF
+ 0610             JMP RESXAF
+ 0620  TOUT       STA *$F9
+ 0630             JSR SAVER
+ 0640             LDA #$01
+ 0650             BIT TOUTFL
+ 0660             BEQ TERM
+ 0670             STA ORB
+ 0680  WAIT       BIT ORB
+ 0690             BMI WAIT
+ 0700  TERM       LDA #$30
+ 0710             STA PBDA+1
+ 0720             LDA *$F9
+ 0730             LDX #$0B
+ 0740             EOR #$FF
+ 0750             SEC
+ 0760  OUTC       JSR OUT
+ 0770             LDY #$0C
+ 0780  PHAKE      DEY
+ 0790             BNE PHAKE
+ 0800             NOP
+ 0810             LSR A
+ 0820             DEX
+ 0830             BNE OUTC
+ 0840             JMP RESALL
+ 0850  OUT        PHA
+ 0860             LDA PBDA
+ 0870             AND #$0F
+ 0880             BCC OUTONE
+ 0890             ORA #$30
+ 0900  OUTONE     AND TOUTFL
+ 0910             STA PBDA
+ 0920             PLA
+ 0930             RTS
+ 1200             .EN

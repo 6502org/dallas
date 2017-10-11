@@ -1,0 +1,365 @@
+; 20:48:00  MONDAY  10th June,1984
+;*****************************************;
+;*           CATALOG V1.0                *;
+;*    for SYM with FDC-1 and SYMDOS2     *;
+;*                                       *;
+;*  copyright june,1984 by KIN-PING KWOK *;
+;*****************************************;
+           .BA $200
+           .OS
+CATPTR     .DE $A2
+SRTPTR     .DE DIRPT
+ENDPTR     .DE FCB
+SPC2       .DE $833F
+INSTAT     .DE $8386
+TECHO      .DE $A653
+ 
+CATALOG    JSR ACCESS
+           LDA #MSG3-MSG :display sign on message
+           JSR OUTMSG
+           BEQ CATALOG@
+ 
+ERR1       LDA #$50
+CATERR     JSR ERMSG
+           JMP OFF
+ 
+CATALOG@   LDA #L,CATBUF :set up pointers
+           STA *CATPTR  ;  for storing data
+           LDA #H,CATBUF
+           STA *CATPTR+1
+           JSR GETDTA1  ;get file name
+           BCS CATERR
+           CMP #1       ;check the no. of parameter
+           BNE ERR1     ;if not = 1,branch to err1
+           JSR CRLF
+           LDA P3L
+           JSR USET
+           JSR SETPARMS
+           BCS CATERR
+           JSR SCAN
+           LDA #0
+           LDY #EXTNO
+           STA (FCB),Y
+           JSR REMAIN   ;find no. of blocks unoccupied
+           BCS CATERR
+           JSR OPEN     ;open file
+           JMP CAT3
+ 
+CAT2       LDX #0       ;read directory
+           LDY #$20
+CAT1.5     DEY
+           LDA (DIRPT),Y :find number of blocks
+           BEQ CAT1.7
+           INX
+CAT1.7     CPY #$11
+           BCS CAT1.5
+           TXA
+           STA (CATPTR),Y
+           DEY
+CAT4       LDA (DIRPT),Y
+           STA (CATPTR),Y
+           DEY
+           BPL CAT4
+           LDY #EXTNO   ;set extent number to 1
+           LDA #1
+           STA (CATPTR),Y
+           LDA #$11     ;change pointer to
+           CLC :        ;  point to next free location
+           ADC *CATPTR
+           STA *CATPTR
+           BCC CNXT
+           INC *CATPTR+1
+CNXT       JSR OPN2
+CAT3       BCS CATERR
+           BEQ CAT2
+           JSR OFF
+           LDY #0       ;place a byte of 0 at end of data
+           TYA
+           STA (CATPTR),Y
+ 
+SORT       STA SORTBUF  ;sort the coded directory entries
+           LDA #L,SORTBUF
+           STA ENDLOC   ;sorting algorithm used
+           LDA #H,SORTBUF :  is insertion sort
+           STA ENDLOC+1
+           LDA #L,CATBUF
+           STA *CATPTR
+           LDA #H,CATBUF
+           STA *CATPTR+1
+CMPNXT     LDA #L,SORTBUF       ;initialize pointer
+           STA *SRTPTR
+           LDA #H,SORTBUF
+           STA *SRTPTR+1
+SRTCMP     LDY #0       ;compare two file name
+           LDA (CATPTR),Y
+           BEQ GODSPY   ;end of data if 1st byte is 0
+           LDA (SRTPTR),Y
+           BEQ MOVE
+SCMP1      LDA (SRTPTR),Y
+           EOR (CATPTR),Y
+           AND #$80
+           EOR (SRTPTR),Y
+           CMP (CATPTR),Y
+           BCC SNXT
+           BNE MOVE
+           INY
+           CPY #EXTNO
+           BCC SCMP1
+ 
+           LDA (SRTPTR),Y       ;same file name
+           ADC #0       ;increase extent no. by 1
+           STA (SRTPTR),Y
+           LDY #$10     ;sum the no. of blocks
+           LDA (SRTPTR),Y
+           ADC (CATPTR),Y
+           STA (SRTPTR),Y
+CATNXT     LDA #$11     ;next one
+           CLC
+           ADC *CATPTR
+           STA *CATPTR
+           BCC CMPNXT
+           INC *CATPTR+1
+           BCS CMPNXT
+ 
+SNXT       CLC
+           LDA #$11
+           ADC *SRTPTR
+           STA *SRTPTR
+           BCC SRTCMP
+           INC *SRTPTR+1
+           BCS SRTCMP
+ 
+GODSPY     BEQ DSPY
+ 
+MOVE       LDA ENDLOC   ;move part of the sorted data
+           STA *ENDPTR  ;  to free a space for a new data
+           LDA ENDLOC+1
+           STA *ENDPTR+1
+           LDX #0
+           LDY #$11
+MV1        LDA (ENDPTR,X)
+           STA (ENDPTR),Y
+           LDA *ENDPTR
+           CMP *SRTPTR
+           BNE MV2
+           LDA *ENDPTR+1
+           CMP *SRTPTR+1
+           BEQ MV3
+MV2        LDA *ENDPTR
+           BNE MV2.5
+           DEC *ENDPTR+1
+MV2.5      DEC *ENDPTR
+           JMP MV1
+MV3        DEY
+MV4        LDA (CATPTR),Y
+           STA (SRTPTR),Y
+           DEY
+           BPL MV4
+           CLC
+           LDA #$11
+           ADC ENDLOC
+           STA ENDLOC
+           BCC CATNXT
+           INC ENDLOC+1
+           BCS CATNXT
+OUTMSG     TAX :        ;display message
+OMSG1      LDA MSG,X
+           BEQ OMSGRT
+           JSR OUTCHR
+           INX
+           BNE OMSG1
+OMSGRT     RTS
+ 
+SUMMARY    LDA TOTFILE  ;output total no. of file
+           CMP #$A      ;<10?
+           BCS SUM1     ;if not branch to SUM1
+           ORA #$30     ;output 1 digit
+           JSR OUTCHR
+           BNE SUM2
+SUM1       JSR OUTBYT   ;output 2 digit
+SUM2       LDA #MSG4-MSG
+           JSR OUTMSG
+           LDA TOTBLK   ;output no. of blocks occupied
+           JSR BINDEC   ; by the files as 3 decimal digits
+           LDA #MSG5-MSG
+           JSR OUTMSG
+FINAL      LDA RMBLK    ;output the number of
+           JSR BINDEC   ;unoccupied blocks
+           LDA #MSG2-MSG
+           JMP OUTMSG
+ 
+DSPY       LDY #0       ;start of display
+           LDA (SRTPTR),Y
+           BEQ FINAL
+           STY TOTFILE
+           STY TOTBLK
+           LDA #MSG1-MSG        ;display heading
+           JSR OUTMSG
+SM1        LDY #0
+           LDA (SRTPTR),Y
+           BEQ SUMMARY
+           JSR SPACE
+           LDY #SYS     ;bracket the file
+           LDX #'       ;  if it is a system file
+           LDA (SRTPTR),Y
+           BPL SM2
+           LDX #'(
+SM2        TXA
+           JSR OUTCHR
+           LDY #0
+SM3        LDA (SRTPTR),Y       ;output file name
+           AND #$7F
+           JSR OUTCHR
+           INY
+           CPY #8
+           BNE SM4
+           JSR SPACE
+SM4        CPY #EXTNO
+           BCC SM3
+           LDY #SYS
+           LDX #' 
+           LDA (SRTPTR),Y
+           BPL SM5
+           LDX #')
+SM5        TXA :        ;output R/W or R/O
+           JSR OUTCHR
+           JSR SPACE
+           LDA #'R
+           JSR OUTCHR
+           LDA #'/
+           JSR OUTCHR
+           LDX #'W
+           LDY #PROT
+           LDA (SRTPTR),Y
+           BPL SM6
+           LDX #'O
+SM6        TXA :        ;output no. of extent
+           JSR OUTCHR
+           JSR SPC2
+           LDY #EXTNO
+           LDA (SRTPTR),Y
+           ORA #$30
+           JSR OUTCHR
+           JSR SPC2
+           LDY #$10
+           LDA (SRTPTR),Y
+           PHA
+           CLC
+           ADC TOTBLK   ;calculate total blocks occupied
+           STA TOTBLK   ;by the files and no. of files
+           LDA #1
+           SED
+           ADC TOTFILE
+           STA TOTFILE
+           CLD
+           PLA :        ;output no. of blocks occupied
+           JSR BINDEC   ;  by this file
+           JSR SPACE
+           LDY #SAH     ;output address
+           JSR OUTADDRS
+           LDA #'-
+           JSR OUTCHR
+           JSR OUTADDRS
+           JSR CRLF
+           JSR INSTAT   ;check for break key
+           BCC NOBRK
+           LDA TECHO    ;break key is depressed
+           PHA :        ;disable echo
+           AND #$7F
+           STA TECHO
+LK^Q       JSR INCHR
+           CMP #$03     ;^C
+           BNE NOT^Z
+           LDA #'^      ;terminate if ^C is depressed
+           JSR OUTCHR
+           LDA #'C
+           JSR OUTCHR
+           JSR CRLF
+           PLA
+           STA TECHO
+           JMP FINAL
+NOT^Z      CMP #$11     ;^Q
+           BNE LK^Q
+           PLA :        ;continue if ^Q is depressed
+           STA TECHO
+NOBRK      LDA #$11
+           CLC
+           ADC *SRTPTR
+           STA *SRTPTR
+           BCC SM7
+           INC *SRTPTR+1
+SM7        JMP SM1
+ 
+BINDEC     PHA :        ;output the decimal value
+           AND #$0F     ;   of A in 3 digits
+           CMP #$A
+           BCC BD1
+           ADC #$5
+BD1        STA CATTMP1
+           PLA
+           LSR A
+           LSR A
+           LSR A
+           LSR A
+           CMP #$A
+           BCC BD2
+           ADC #$5
+BD2        LDY #0
+           SED
+           LDX #4
+BD3        STA CATTMP2
+           CLC
+           ADC CATTMP2
+           BCC BD4
+           INY
+BD4        DEX
+           BNE BD3
+           CLC
+           ADC CATTMP1
+           BCC BD5
+           INY
+BD5        CLD
+           PHA
+           TYA
+           ORA #$30
+           JSR OUTCHR
+           PLA
+           JMP OUTBYT
+ 
+REMAIN     JSR MAPPING  ;calc. no. of unoccupied blocks
+           BCS RMRTS    ;  by counting no. of 1 bit
+           LDX #0       ;  in the memory map within range
+           STX RMBLK
+           LDY #$1F
+RM1        LDA (MAPPT),Y
+           LDX #8
+RM2        ASL A
+           BCC RM3
+           INC RMBLK
+RM3        DEX
+           BNE RM2
+           DEY
+           BPL RM1
+           SEC
+           LDA RMBLK
+           ADC MAX.BLK
+           STA RMBLK
+           CLC
+RMRTS      RTS
+MSG
+MSG1       .BY '' '    FILENAME        EXT BLK  ADDRESS'
+           .BY $0D $0A $00
+MSG2       .BY '' ' block(s) unoccupied' $0D $0A $00
+MSG3       .BY $0D $0A 'CATALOG V1.0'
+           .BY $0D $0A 'filename,unit -> ' $00
+MSG4       .BY '' ' file(s) occupy ' $00
+MSG5       .BY '' ' block(s)' $0D $0A $00
+CATTMP1    .DS 1
+CATTMP2    .DS 1
+RMBLK      .DS 1
+ENDLOC     .DS 2
+TOTFILE    .DI ENDLOC
+TOTBLK     .DI ENDLOC+1
+SORTBUF    .DS $12
+           .CT
+CATBUF     .EN

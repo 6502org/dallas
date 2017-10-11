@@ -1,0 +1,336 @@
+           ;THIS IS A 2732-32A   PROGRAMER 2-3-93 REV 1.0
+           ;
+           ; FOR USE WITH THE UNIVERSAL BOARD
+           ;
+           .OS
+           .BA $0400
+BEEP       .DE $8972
+MONITOR    .DE $8000
+OUT2HEX    .DE $82FA
+CRLF       .DE $834D
+OUTCHR     .DE $8A47
+INCHR      .DE $8A1B
+CKBRK      .DE $8B3C
+           ;
+TIMER      .DE $A417    ;NO IRQ SAME AS A41F
+TIMERUP    .DE $A405
+           ;
+D0>D7      .DE $A801
+A0>A7      .DE $A800
+A8>A11     .DE $AC01
+CE.VPP     .DE $AC00
+           ;
+PADDR2     .DE $A803
+PBDDR2     .DE $A802
+PADDR3     .DE $AC03
+PBDDR3     .DE $AC02
+           ;
+BPTR.L     .DE $E0
+BPTR.H     .DE $E1
+ENDPAGE    .DE $E2
+MSGPTR.L   .DE $E3
+MSGPTR.H   .DE $E4
+TEMP       .DE $E5
+           ;
+           ;
+           ;
+COLDST     JSR INIT     ;INIT I.O AND INSERT EPROM
+WARM       LDA #L,MSG.1         ;OUTPUT MENU
+           STA MSGPTR.L
+           LDA #H,MSG.1
+           STA MSGPTR.H
+           JSR MSGOUT
+           LDA #'#      ;PROMPT
+           JSR OUTCHR
+           JSR INCHR    ;GET CMD
+           CMP #'P      ;PROGRAM
+           BNE NO.P
+           JSR PROG
+           JMP WARM
+           ;
+NO.P       CMP #'C      ;COPY
+           BNE NO.C
+           JSR COPY
+           JMP WARM
+           ;
+NO.C       CMP #'V      ;VERIFY EPROM AND BUFFER
+           BNE NO.V
+           JSR VERIFY
+           JMP WARM
+           ;
+NO.V       CMP #'B      ;CHECK FOR BLANK EPROM
+           BNE NO.B
+           JSR BLANK
+           JMP WARM
+           ;
+NO.B       CMP #'S      ;STOP AND REMOVE EPROM
+           BNE NO.S
+           JSR STOP
+           JMP COLDST
+           ;
+NO.S       CMP #'M      ;RETURN TO MONITOR
+           BNE NO.M
+           JSR VIA.IN
+           JMP MONITOR
+           ;
+NO.M       LDA #'?      ;BAD CMD TRY AGAIN
+           JSR OUTCHR
+           JMP COLDST
+           ;
+           ;
+           ;
+INIT       JSR VIA.IN   ;SET ALL I.O LINES AS INPUTS
+NO.CHR     LDA #L,MSG.3         ;AND 21 VOLTS OFF
+           STA MSGPTR.L
+           LDA #H,MSG.3
+           STA MSGPTR.H
+           JSR MSGOUT   ;INSERT EPROM AND TURN PWR ON
+           JSR INCHR
+           CMP #$0D     ;WAIT FOR CR
+           BNE NO.CHR
+           JSR CE.HI
+           RTS
+           ;
+           ;
+           ;
+PROG       LDA #L,MSG.2         ;PROGRAM THE EPROM
+           STA MSGPTR.L
+           LDA #H,MSG.2
+           STA MSGPTR.H
+           JSR MSGOUT   ;DO YOU WANT TO PROG
+           JSR INCHR
+           CMP #'Y      ;MUST ANSWER YES
+           BNE ABORT
+           JSR CONFIGPROG       ;SET DATA LINES AS OUTPUTS
+           JSR V21ON
+NEXT       JSR ADDROUT  ;OUTPUT ADDRESS TO EPROM
+           LDA ($E0),Y  ;GET BUFFER CONTENTS
+           CMP #$FF
+           BEQ SKIPIT   ;NO NEED TO PROG FF'S
+           STA D0>D7    ;OUTPUT GOOD BYTE TO EPROM
+           JSR PULSE
+SKIPIT     JSR INCADDR  ;GET NEXT ADDRESS
+           BCS NEXT
+           JSR V21OFF
+           JSR CE.HI
+           ;
+           LDA #$2F     ;SIGNAL WHEN THRU
+DLY        JSR BEEP
+           SBC #$01
+           BNE DLY
+           ;
+ABORT      RTS
+           ;
+           ;
+           ;
+V21ON      LDA CE.VPP   ;TURN 21 VOLTS ON
+           AND #%11101111
+           STA CE.VPP   ;MAKE PB4 LO
+           BNE V1       ;ALWAYS
+           ;
+           ;
+           ;
+V21OFF     LDA CE.VPP   ;TURN 21 VOLTS OFF
+           ORA #%00010000
+           STA CE.VPP   ;MAKE PB4 HI
+V1         LDA PBDDR3   ;MAKE LINE OUTPUT
+           ORA #%00010000
+           STA PBDDR3
+           RTS
+           ;
+           ;
+           ;
+COPY       JSR CONFIG.RD        ;COPY EPROM INTO BUFFER
+COPYMORE   JSR ADDROUT
+           LDA D0>D7    ;GET EPROM DATA
+           STA (BPTR.L),Y       ;TO RAM BUFFER
+           JSR INCADDR  ;NEXT
+           BCS COPYMORE
+           RTS
+           ;
+           ;
+           ;
+VERIFY     JSR CONFIG.RD        ;VER EPROM AND BUF MATCH
+VER.MORE   JSR ADDROUT  ;ADDRESS TO EPROM
+           LDA (BPTR.L),Y       ;GET BUFFER CONTENTS
+           CMP D0>D7    ;DO THEY MATCH
+           BEQ VER.OK
+           JSR NO.MATCH         ;PRINT BAD BYTES
+VER.OK     JSR INCADDR  ;NEXT ONE
+           BCS VER.MORE
+           RTS
+           ;
+           ;
+           ;
+BLANK      JSR CONFIG.RD        ;SEE IF EPM IS BLNK
+CK.NEXT    JSR ADDROUT  ;ADDRESS TO EPROM
+           LDA #$FF
+           CMP D0>D7
+           BEQ IS.FF
+           JSR NO.MATCH         ;PRINT BAD BYTES
+IS.FF      JSR INCADDR  ;NEXT ADDRESS
+           BCS CK.NEXT
+           RTS
+           ;
+           ;
+           ;
+VIA.IN     LDY #$00     ;ALL EPROM ADDR AND DATA INPUTS
+           ;VPP VIA3 BIT PB4 IS BUFFERED
+           STY PADDR2   ;ON THE SYM MAKING IT AN INPUT
+           STY PBDDR2   ;CAUSES THE 25 V TO BE TURNED OFF
+           STY PADDR3
+           STY PBDDR3   ;BECAUSE OF THE EXTERNAL XSISTORS
+           RTS
+           ;
+           ;
+           ;
+CONFIGPROG LDX #$FF
+           STX PADDR2   ;DATA LINES OUTPUTS
+           JSR CE.HI
+           JMP CONFIG
+           ;
+           ;
+           ;
+CONFIG.RD  JSR CE.LO
+           JSR V21OFF
+           LDX #$00
+           STX PADDR2   ;DATA LINES INPUTS
+           ;
+CONFIG     LDA #$FF     ;ALL ADDR LINES OUTPUTS
+           STA PBDDR2
+           STA PADDR3
+           ;
+           LDA #$00     ;INITIALIZE BUFFER POINTER
+           TAY
+           STA BPTR.L   ;BUFFER FROM $1000 - $1FFF
+           CLC
+           LDA #$10
+           STA BPTR.H   ;START BUFFER AT $1000
+           ADC #$10     ;ADD 4K TO IT
+           STA ENDPAGE  ;REMEMBER LAST PAGE
+           RTS
+           ;
+           ;
+           ;
+ADDROUT    LDA BPTR.L   ;PUT ADDRESS TO EPROM LINES
+           STA A0>A7    ;BYTE POINTER TO EPROM
+           LDA BPTR.H   ;GET NEW ADDRESS
+           STA A8>A11   ;BACK TO EPROM
+           RTS
+           ;
+           ;
+           ;
+INCADDR    INC BPTR.L   ;INC BUFFER POINTER
+           BNE NOTFIN   ;RET WITH C = 1 IF NOT THRU
+           INC BPTR.H
+           LDA BPTR.H
+           CMP ENDPAGE
+           BNE NOTFIN
+           CLC  ;RET WITH C = 0 IF FINISHED
+           RTS
+           ;
+NOTFIN     SEC  ;RET WITH C = 1 IF NOT THRU
+           RTS
+           ;
+           ;
+           ;
+PULSE      LDA #$30     ;TAKE CE LINE LOW
+           STA TIMER    ;FOR 50 MSEC
+           JSR CE.LO
+MORETIME   BIT TIMERUP
+           BPL MORETIME
+           JSR CE.HI
+           RTS
+           ;
+           ;
+           ;
+NO.MATCH   PHA  ;      PRINT AAAA DDDD EEEE
+           LDA BPTR.H   ;    ADDR BUFF EPROM
+           JSR OUT2HEX
+           LDA BPTR.L
+           JSR OUT2HEX
+           LDA #$20
+           JSR OUTCHR
+           PLA
+           JSR OUT2HEX  ;PRINT BUFFER CONTENTS
+           LDA #$20
+           JSR OUTCHR
+           LDA D0>D7
+           JSR OUT2HEX  ;PRINT EPROM CONTENTS
+           JSR CRLF
+           JSR CKBRK    ;CK BRK KEY 
+           BCC NOBRK
+           PLA  ;IF BRK DOWN CLEAR STACK AND RET
+           PLA
+NOBRK      RTS
+           ;
+           ;
+           ;
+STOP       JSR VIA.IN   ;ALL LINES INPUTS AND 21 V OFF
+           LDA #L,MSG.4
+           STA MSGPTR.L
+           LDA #H,MSG.4
+           STA MSGPTR.H
+           JSR MSGOUT   ;TURN PWR OFF PRESS
+           JSR INCHR    ;ANY KEY
+           RTS
+           ;
+           ;
+           ;
+MSGOUT     LDA (MSGPTR.L),Y     ;PRINT MSG POINTED AT
+           CMP #$04
+           BEQ QUIT
+           JSR OUTCHR
+           INC MSGPTR.L
+           BNE MSGOUT
+           INC MSGPTR.H
+           JMP MSGOUT
+QUIT       RTS
+           ;
+           ;
+           ;
+           ;
+           ;
+CE.HI      LDA CE.VPP   ;MAKE OE LINE HI
+           ORA #%00000001
+           STA CE.VPP   ;SET BIT IF OUT REG
+           BNE CE1      ;ALWAYS
+           ;
+CE.LO      LDA CE.VPP   ;MAKE CE LINE LO
+           AND #%11111110
+           STA CE.VPP
+           ;
+CE1        LDA PBDDR3
+           ORA #%00000001
+           STA PBDDR3
+           RTS
+           ;
+           ;
+           ;
+           ;
+           ;
+MSG.1      .BY $0D $0A '2732 PROGRAMER  ** 25 VOLTS **' $0D $0A $0A
+           .BY '2732-A PROGRAMER ** 21 VOLTS ** CHECK HEADER'$0D $0A $0A
+           .BY 'FOR USE WITH THE UNIVERSAL BOARD' $0D $0A $0A
+           .BY 'DALLAS SHELL 2-3-93 REV 1.0' $0D $0A
+           .BY 'BUFFER FROM $1000-$1FFF' $0D $0A $0A
+           .BY ' C ---COPY EPROM INTO BUFFER' $0D $0A
+           .BY ' P ---PROGRAM   APROX TIME 4 MIN ' $0D $0A
+           .BY ' V ---VERIFY EPROM AND BUFFER AGREE ' $0D $0A
+           .BY ' B ---CHECK IF EPROM IS BLANK' $0D $0A
+           .BY ' S ---STOP ' $0D $0A
+           .BY ' M ---RETURN TO MONITOR ' $0D $0A $0A $04
+           ;
+           ;
+MSG.2      .BY $0D $0A 'DO YOU WANT TO PROGRAM ?' $04
+           ;
+           ;
+MSG.3      .BY $0A $0D $0A '2732-32A PROGRAMER' $0D  $0A
+           .BY $0D $0A 'CHECK FOR PROPER HEADER & VOLTAGE' $0D $0A
+           .BY $0D $0A ' INSERT EPROM AND TURN POWER ON THEN PRESS CR' $0D $0A
+           .BY $04
+           ;
+           ;
+           ;
+MSG.4      .BY $0D $0A 'TURN POWER OFF THEN PRESS ANY KEY' $04
+           .EN

@@ -1,0 +1,442 @@
+Sample run of SYM using SYMDOS2 this example showsSample run of SYM using 
+SYMDOS2 this example shows
+how well integrated with other programs the DOS is.
+Bold larger size type are my comments about 
+operation and smaller type is the actual SYM
+to Terminal input-output. I have slightly modified the 
+terminal output to allow room for my comments
+ 
+Terminal used was IBM PC using HyperTerminal connected
+to SYM at 4800-8-N-1 with VT100 configuration.
+ 
+ 
+ 
+Pressed RESET button on SYM
+Pressed Q on terminal to lon on to SYM, 
+SYM gave period as prompt
+ 
+ 
+Link to DOS with g9003 everything else shown
+to next comment is done automatically because the 
+disk IDSECTOR has been modified to automatically 
+issue commands to start RAE and SET up memory 
+boundries as talked about in the notes on 
+using the IDsector on the disk.
+ 
+.g 9003
+.G B000 
+RAE V1.0
+COPYRIGHT 1979 SYNERTEK SYSTEMS CORP. 
+ 
+ 
+0200-0BFC  0C00-0EFC  0F00
+0200  0C00
+>SE $1000 $5000 $5003 $6EFC $6F00 
+1000-5000  5003-6EFC  6F00
+0200  0C00
+>CL 
+>SET 
+1000-5000  5003-6EFC  6F00
+1000  0C00
+>
+ 
+All of the above was done automatically.
+This saves a lot of typing to start RAE
+and modify the SET boundries to my memory
+configuration.  I always start RAE from disk
+this way when I will be using RAE.  Other startup
+disks could be made to start BASIC, FORTH etc or
+you could start a data collection program that would
+log data to disk etc.
+ 
+Here I ask for disk directory of disk 0 from RAE
+ 
+>DC DIR 0 
+FMT&CPY OBJ 0200-086F :IDSECT  RAE 0200-08DA :
+IDSECT  MY  1000-1716 :
+>
+ 
+Here I ask for disk directory of disk 1 from RAE
+Note format of listing.
+ 
+>DC DIR 1 
+1541DOS RAE 0200-3F24 :1541DOS OBJ 7000-7C74 :
+E2716   OBJ 0400-07A1 :CAT     COM 0200-0534 :
+FMT&CPY OBJ 0200-086F :E2716   RAE 1000-2814 :
+M957    RAE 0200-04B3 :MX80    RAE 0200-046C :
+E2532   RAE 2000-3894 :E2532   OBJ 0400-079A :
+E2764   RAE 2000-3A27 :E2764   OBJ 0400-07F6 :
+GETAIM  RAE 1000-15A9 :GETAIM  OBJ 0400-0462 :
+MX80    OBJ 7000-7057 :R322311 EPM 1000-1FFF :
+MATHPACKEPM 1000-1FFF :ERSOBIOSEPM 1000-2FFF :
+NSM4005 RAE 0200-048D :4THZ26  EPM 1000-1FFF :
+PL65Z25 EPM 1000-1FFF :PL65Z26 EPM 1000-1FFF :
+R3222   EPM 1000-1FFF :R3224   EPM 1000-1FFF :
+R322511 EPM 1000-1FFF :R322611 EPM 1000-1FFF :
+4THZ25  EPM 1000-1FFF :
+>
+ 
+Now I want to go to the MONITOR so, 
+I press CTRL C on the terminal keyboard
+ 
+>^C
+B0AC,0
+.                       SYM responds with . prompt
+.L3  CAT.COM,1         I now load program CAT.COM from disk 1
+                 Notice this is a new L3 type command
+                 that has been linked to the Monitor
+                 command set by the DOS linkup.
+ 
+ 
+.                       CAT program is loaded prompt given
+ 
+.G 200                  I run cat program at 200 I knew where to
+                 run by looking at directory listing that 
+                 shows were code was stored (200-534)  I knew
+                 It was object code by the naming convention, ie 
+                 com or obj
+ 
+                 Now here is output from the CAT program.  Note
+                 directory output is sorted and shows more detail.
+                 It is also in alpha one column width.
+CATALOG V1.0
+filename,unit -> *.*,1      I enter *.* as name and 1 for disk 1
+ 
+     FILENAME        EXT BLK  ADDRESS
+  1541DOS  OBJ  R/W  1  005 7000-7C74
+  1541DOS  RAE  R/W  2  021 0200-3F24
+  4THZ25   EPM  R/W  1  006 1000-1FFF
+  4THZ26   EPM  R/W  1  006 1000-1FFF
+  CAT      COM  R/W  1  002 0200-0534
+  E2532    OBJ  R/W  1  002 0400-079A
+  E2532    RAE  R/W  1  009 2000-3894
+  E2716    OBJ  R/W  1  002 0400-07A1
+  E2716    RAE  R/W  1  009 1000-2814
+  E2764    OBJ  R/W  1  002 0400-07F6
+  E2764    RAE  R/W  1  009 2000-3A27
+  ERSOBIOS EPM  R/W  1  011 1000-2FFF
+  FMT&CPY  OBJ  R/W  1  003 0200-086F
+  GETAIM   OBJ  R/W  1  001 0400-0462
+  GETAIM   RAE  R/W  1  002 1000-15A9
+  M957     RAE  R/W  1  001 0200-04B3
+  MATHPACK EPM  R/W  1  006 1000-1FFF
+  MX80     OBJ  R/W  1  001 7000-7057
+  MX80     RAE  R/W  1  001 0200-046C
+  NSM4005  RAE  R/W  1  001 0200-048D
+  PL65Z25  EPM  R/W  1  006 1000-1FFF
+  PL65Z26  EPM  R/W  1  006 1000-1FFF
+  R3222    EPM  R/W  1  006 1000-1FFF
+  R322311  EPM  R/W  1  006 1000-1FFF
+  R3224    EPM  R/W  1  006 1000-1FFF
+  R322511  EPM  R/W  1  006 1000-1FFF
+  R322611  EPM  R/W  1  006 1000-1FFF
+27 file(s) occupy 142 block(s)
+059 block(s) unoccupied
+ 
+.                       Program finished, control goes back
+                 to monitor, monitor issues prompt
+.G B003                 Now to restart RAE, we issue a 
+                 g B003 to warm start RAE, everything
+                 in RAE is unchanged.
+ 
+1000-5000  5003-6EFC  6F00
+1000  0C00
+>LO GETAIM.RAE 1             Load source code file from disk 1
+ 
+>
+>PR                     List RAE buffer sample file
+ 
+ 0005             ;GETAIM.RAE 1-2-2003
+ 0010             ;THIS PROGRAM WILL RECEIVE 4K CHARACTERS FROM
+ 0020             ;THE AUX RS232 PORT AND STORE THE DATA INTO THE
+ 0030             ;BUFFER AT $1000 THRU $1FFF
+ 0035             ;THIS PROGRAM WAS WRITTEN TO RECEIVE EPROM FILES
+ 0036             ;FROM AN IBM PC DISK FILE 
+ 0040             ;
+ 0050             .OS
+ 0060             .BA $0400
+ 0260             ;
+ 0270  BPTR.L     .DE $E0
+ 0280  BPTR.H     .DE $E1
+ 0290  ENDPAGE    .DE $E2
+ 0330             ;
+ 0340             ;
+ 0730             ;
+ 1450             ;
+ 1451  START      JSR CONFIG
+ 1455             LDY #$00
+ 1460  COPY       LDX #$00     ;COPY EPROM CONTENTS INTO RAM BUF
+ 1480  COPYMORE   JSR INCHR
+ 1500             STA (BPTR.L),Y       ;TO RAM BUFFER
+ 1510             JSR INCADDR  ;NEXT
+ 1520             BCS COPYMORE
+ 1530             RTS
+ 1540             ;
+ 2070  CONFIG     LDA #$00     ;INITIALIZE BUFFER POINTER
+ 2080             TAY
+ 2090             STA BPTR.L   ;BUFFER FROM $1000 - $1FFF
+ 2100             CLC
+ 2110             LDA #$10
+ 2120             STA BPTR.H   ;START BUFFER AT $1000
+ 2130             ADC #$10     ;ADD 4K TO IT
+ 2140             STA ENDPAGE  ;REMEMBER LAST PAGE
+ 2145             JSR INIT
+ 2150             RTS
+ 2160             ;
+ 2170             ;
+ 2450             ;
+ 2460  INCADDR    INC BPTR.L   ;INC BUFFER POINTER
+ 2470             BNE NOTFIN   ;RET WITH C = 1 IF NOT THRU
+ 2480             INC BPTR.H
+ 2490             LDA BPTR.H
+ 2500             CMP ENDPAGE
+ 2510             BNE NOTFIN
+ 2520             CLC  ;RET WITH C = 0 IF FINISHED
+ 2530             RTS
+ 2540             ;
+ 2550  NOTFIN     SEC  ;RET WITH C = 1 IF NOT THRU
+ 2560             RTS
+ 2570             ;
+ 3290  ; R6551 ACIA DRIVER 4-2-86
+ 3300  ;
+ 3310  ;
+ 3320  DATAR      .DE $F300
+ 3330  STATUS     .DE DATAR+1
+ 3340  CMD        .DE DATAR+2
+ 3350  CONT       .DE DATAR+3
+ 3360  ;
+ 3370  ;
+ 3400  ;
+ 3410  ;
+ 3430  INCHR      LDA STATUS
+ 3440             AND #$40     ;CK DSR* MUST BE -V
+ 3490  RDRE       LDA STATUS
+ 3500             AND #$08     ;WAIT FOR CHR
+ 3510             BEQ RDRE
+ 3520             LDA DATAR    ;GET CHR
+ 3530             RTS
+ 3540  ;
+ 3550  ;
+ 3560  OUTCH      PHA
+ 3580  TDRE       LDA STATUS
+ 3590             AND #$10
+ 3600             BEQ TDRE     ;WAIT FOR TX EMPTY
+ 3610             PLA
+ 3620             STA DATAR    ;SEND IT
+ 3630             RTS
+ 3640  ;
+ 3650  ;
+ 3710  ;
+ 3720  ;
+ 3730  INIT       LDA #$0B     ;N PAR, NO INT
+ 3740             STA CMD      ;DTR=L RTS=L
+ 3750             LDA #$1C     ;1 SB 8 BIT INT CLK
+ 3760             STA CONT     ;4800 BAUD
+ 3770             RTS
+ 3780  ;
+ 3790  ;
+ 3800             .EN
+//
+ 
+>                       RAE finishes and gives prompt
+ 
+>^C                     Issue CTRL C to break to monitor
+ 
+B0AC,0
+.                       Monitor responds
+ 
+.G 200                  Run catalog program again (it is still in memory)
+CATALOG V1.0
+filename,unit -> *.*,0     FILENAME        EXT BLK  ADDRESS
+  FMT&CPY  OBJ  R/W  1  003 0200-086F
+  IDSECT   MY   R/W  1  003 1000-1716
+  IDSECT   RAE  R/W  1  003 0200-08DA
+3 file(s) occupy 009 block(s)
+192 block(s) unoccupied
+ 
+.G B003                 Warm start RAE
+ 
+1000-5000  5003-6EFC  6F00
+15A7  0C00
+>                       
+ 
+>PR 0 300              Print lines 0 thru 300 to show RAE
+                 information unchanged
+ 
+ 0005             ;GETAIM.RAE 1-2-2003
+ 0010             ;THIS PROGRAM WILL RECEIVE 4K CHARACTERS FROM
+ 0020             ;THE AUX RS232 PORT AND STORE THE DATA INTO THE
+ 0030             ;BUFFER AT $1000 THRU $1FFF
+ 0035             ;THIS PROGRAM WAS WRITTEN TO RECEIVE EPROM FILES
+ 0036             ;FROM AN IBM PC DISK FILE 
+ 0040             ;
+ 0050             .OS
+ 0060             .BA $0400
+ 0260             ;
+ 0270  BPTR.L     .DE $E0
+ 0280  BPTR.H     .DE $E1
+ 0290  ENDPAGE    .DE $E2
+//
+ 
+ 
+>CL                     Clear RAE 
+ 
+>PR //                  Print show empty file
+ 
+>^C                     CTRL C Break to monitor
+B0AC,0
+.                       View some memory
+.V 200 0200 20 86 8B A9 3E 20 23 03,5E
+ 025E
+.V 200,220 0200 20 86 8B A9 3E 20 23 03,5E
+0208 F0 08 A9 50 20 71 81 4C,AD
+0210 4E 91 A9 35 85 A2 A9 05,3F
+0218 85 A3 20 E8 92 B0 ED C9,67
+0220 01,68
+ 0E68
+.
+ 
+.G B003                 Warm start RAE
+1000-5000  5003-6EFC  6F00
+1000  0C00
+>^C                     Back to monitor
+B0AC,0
+.
+.G 200                  Run Catalog code still in memory
+                 of FORTH Disk.  Numbered file names are
+                 Forth screen numbers
+ 
+CATALOG V1.0
+filename,unit -> *.*,1     FILENAME        EXT BLK  ADDRESS
+  0             R/W  1  002 5B7E-5F7D
+  1             R/W  1  002 5B7E-5F7D
+  10            R/W  1  002 5B7E-5F7D
+  12459         R/W  1  002 5B7E-5F7D
+  14011         R/W  1  002 5B7E-5F7D
+  16            R/W  1  002 5B7E-5F7D
+  2             R/W  1  002 5B7E-5F7D
+  3             R/W  1  002 5B7E-5F7D
+  3023          R/W  1  002 5B7E-5F7D
+  30395         R/W  1  002 5B7E-5F7D
+  30FB          R/W  1  002 5B7E-5F7D
+  32512         R/W  1  002 5B7E-5F7D
+  32767         R/W  1  002 5B7E-5F7D
+  36AB          R/W  1  002 5B7E-5F7D
+  4             R/W  1  002 5B7E-5F7D
+  5             R/W  1  002 5B7E-5F7D
+  6             R/W  1  002 5B7E-5F7D
+  6F00          R/W  1  002 5B7E-5F7D
+  7             R/W  1  002 5B7E-5F7D
+  8             R/W  1  002 5B7E-5F7D
+  FLEXDISK      R/W  1  013 2000-4500
+  FMT&CPY  OBJ  R/W  1  003 0200-086F
+  LM334    OBJ  R/W  1  001 1000-1126
+  LM334    RAE  R/W  1  004 2000-2BB9
+  MX80A    OBJ  R/W  1  001 7000-7066
+  MX80ACON RAE  R/W  1  001 0200-04B6
+  SPECT    RAE  R/W  1  001 0200-03C3
+  SPECTRUM      R/W  1  001 0201-0379
+  SPECTRUM BAS  R/W  1  001 0201-0379
+29 file(s) occupy 066 block(s)
+135 block(s) unoccupied
+ 
+.
+.L3  FLEXDISK,1       Load FORTH with disk I/O for this DOS
+ 
+.G 2000                 Start FORTH address known by looing at 
+                 disk catalog information
+FLEX-FORTH  1.0
+OK
+1 3 + .                 Add two numbers and print in FORTH
+4 OK
+ 
+OK                      Mutiply two numbers
+4 5 * .
+20 OK
+VLIST                   List FORTH vocabulary
+                 Notice something looks screwed up here
+                 The data that was captured by HyperTerminal
+                 to a disk file is shown directly below:
+ 
+R/×   R¯   /×   MAKENAMÅ   GETDATA/Ò   GETDATA/×   S3CMD«   L3CMD«   
+L·   WHERÅ   EDITOÒ   LINÅ   TEXÔ   CODÅ   ASM-STATÅ   ASSEMBLEÒ   
+MOÎ   VLISÔ   TRIAÄ   INDEØ   LISÔ   ¿   ®   .Ò   D®   D.Ò   #Ó   
+£   SIGÎ   #¾   <£   SPACEÓ   WHILÅ   ELSÅ   IÆ   REPEAÔ   AGAIÎ   
+ENÄ   UNTIÌ   +LOOÐ   LOOÐ   DÏ   THEÎ   ENDIÆ   BEGIÎ   BACË   FORGEÔ   
+§   R/×   -TAPÅ   --¾   LOAÄ   MESSAGÅ   .LINÅ   (LINE©   FLUSÈ   
+BLOCË   BUFFEÒ   DR±   DR°   EMPTY-BUFFERÓ   UPDATÅ   M/MOÄ   *¯   
+*/MOÄ   MOÄ   ¯   /MOÄ   ª   M¯   Mª   MAØ   MIÎ   DABÓ   ABÓ   D+­   
++­   S->Ä   COLÄ   ABORÔ   QUIÔ   ¨   DEFINITIONÓ   FORTÈ   VOCABULARÙ   
+IMMEDIATÅ   INTERPREÔ   ?STACË   DLITERAÌ   LITERAÌ   [COMPILEÝ   
+CREATÅ   ID®   ERROÒ   (ABORT©   -FINÄ   NUMBEÒ   (NUMBER©   UPPEÒ   
+WORÄ   PAÄ   HOLÄ   BLANKÓ   ERASÅ   FILÌ   €   QUERÙ   EXPECÔ   
+.¢   (."©   -TRAILINÇ   TYPÅ   COUNÔ   DOES¾   <BUILDÓ   ;CODÅ   
+(;CODE©   DECIMAÌ   HEØ   SMUDGÅ   Ý   Û   COMPILÅ   ?LOADINÇ   ?CSÐ   
+?PAIRÓ   ?EXEÃ   ?COMÐ   ?ERROÒ   !CSÐ   PFÁ   NFÁ   CFÁ   LFÁ   
+LATESÔ   TRAVERSÅ   -DUÐ   SPACÅ   ROÔ   ¾   ¼   U¼   ½   ­   C¬   
+¬   ALLOÔ   HERÅ   2«   1«   HLÄ   R£   CSÐ   FLÄ   DPÌ   BASÅ   
+STATÅ   CURRENÔ   CONTEXÔ   OFFSEÔ   SCÒ   OUÔ   IÎ   BLË   VOC-LINË   
+DÐ   FENCÅ   WARNINÇ   WIDTÈ   TIÂ   +ORIGIÎ   B/SCÒ   B/BUÆ   LIMIÔ   
+FIRSÔ   C/Ì   BÌ   ³   ²   ±   °   USEÒ   VARIABLÅ   CONSTANÔ   »   
+º   C¡   ¡   CÀ   À   TOGGLÅ   +¡   DUÐ   SWAÐ   DROÐ   OVEÒ   DMINUÓ   
+MINUÓ   D«   «   0¼   0½   Ò   R¾   >Ò   LEAVÅ   ;Ó   RP¡   SP¡   
+SPÀ   XOÒ   OÒ   ANÄ   U¯   Uª   CMOVÅ   CÒ   ?TERMINAÌ   KEÙ   EMIÔ   
+ENCLOSÅ   (FIND©   DIGIÔ   É   (DO©   (+LOOP©   (LOOP©   0BRANCÈ   
+BRANCÈ   EXECUTÅ   CLIÔ   LIÔ   OK
+ 
+OK
+_
+ 
+            Now here is the exact same data, from the same
+        run taken from the HyperTerminal screen using 
+        Cut and Paste.  The following is the correct viewing
+        that was displayed using HyperTerminal.
+ 
+        There is some bug in the process of using HyperTerminal
+        to capture output to a disk file.  The SYM operation is 
+        fine it probably has something to do with character sets
+ 
+        I just noticed this bug while preparing this example, so
+        I have not looked any further into it.  But for our purposes 
+        here, the following is the correct viewing of the FORTH vlist:
+ 
+ 
+VLIST
+ 
+R/   R   /   MAKENAM   GETDATA/   GETDATA/   S3CMD   L3CMD
+L   WHER   EDITO   LIN   TEX   COD   ASM-STAT   ASSEMBLE
+MO   VLIS   TRIA   INDE   LIS         .   D   D.   #
+   SIG   #   <   SPACE   WHIL   ELS   I   REPEA   AGAI
+EN   UNTI   +LOO   LOO   D   THE   ENDI   BEGI   BAC   FORGE
+   R/   -TAP   --   LOA   MESSAG   .LIN   (LINE   FLUS
+BLOC   BUFFE   DR   DR   EMPTY-BUFFER   UPDAT   M/MO   *
+*/MO   MO      /MO      M   M   MA   MI   DAB   AB   D+
++   S->   COL   ABOR   QUI      DEFINITION   FORT   VOCABULAR
+IMMEDIAT   INTERPRE   ?STAC   DLITERA   LITERA   [COMPILE
+CREAT   ID   ERRO   (ABORT   -FIN   NUMBE   (NUMBER   UPPE
+WOR   PA   HOL   BLANK   ERAS   FIL      QUER   EXPEC
+.   (."   -TRAILIN   TYP   COUN   DOES   <BUILD   ;COD
+(;CODE   DECIMA   HE   SMUDG         COMPIL   ?LOADIN   ?CS
+?PAIR   ?EXE   ?COM   ?ERRO   !CS   PF   NF   CF   LF
+LATES   TRAVERS   -DU   SPAC   RO         U         C
+   ALLO   HER   2   1   HL   R   CS   FL   DP   BAS
+STAT   CURREN   CONTEX   OFFSE   SC   OU   I   BL   VOC-LIN
+D   FENC   WARNIN   WIDT   TI   +ORIGI   B/SC   B/BU   LIMI
+FIRS   C/   B               USE   VARIABL   CONSTAN
+   C      C      TOGGL   +   DU   SWA   DRO   OVE   DMINU
+MINU   D      0   0      R   >   LEAV   ;   RP   SP
+SP   XO   O   AN   U   U   CMOV   C   ?TERMINA   KE   EMI
+ENCLOS   (FIND   DIGI      (DO   (+LOOP   (LOOP   0BRANC
+BRANC   EXECUT   CLI   LI   OK
+ 
+OK
+ 
+          I don't remember how to exit and re-enter FORTH, so I will
+        press the hardware reset back to the monitor.
+ 
+Q.
+ 
+            This example shows how well integrated the SYMDOS2 is to the 
+        SYM.  It is a pleasure to be able to jump back and forth between
+        the RAE, Monitor, Basic, Forth etc and issue disk commands without
+        having to constantly RESET and restart things.

@@ -1,0 +1,63 @@
+PR
+                          FILECOPY V1.0
+ 
+     FILECOPY is used to copy files between different diskette. Copying
+files of size greater than available memory is possible. However you
+cannot copy file(s) onto the same side of the diskette.
+ 
+     Below is an example use of FILECOPY:
+.L3
+FILECOPY.COM,80       ;assume FILECOPY is present
+ 
+FILECOPY V1.0
+filename,source unit,dest. unit(,HIMEM) -> FILECOPY.*,0,1    ;HIMEM is opt.
+copying -> FILECOPYRAE
+copying -> FILECOPYCOM
+copying -> FILECOPYDOC    ;above files are just examples
+ 
+     Buffer for FILECOPY begin immediately after the program. If the
+third parameter is not given, it is default as (WRKBUF)-$100 (i.e. 
+the address of the sector buffer of SYMDOS2-$100 ). Usually WRKBUF will
+set near to the top of available memory. Therefore, by default, FILECOPY
+will use nearly all the available memory as buffer. However, in the
+present version of FILECOPY, file can only be copied at most one at a time.
+Therefore if the file size is smaller than the buffer size, not all of the
+buffer will be used.
+ 
+     FILECOPY can be used to transfer files between diskettes of different
+sector size and block size. To achieve this, buffer size is adjusted so tha
+the size is integral number of K-bytes. Hence the buffer size must be at
+least 1K otherwise you will get the error message "Not sufficient memory"
+ 
+     If you have some data in memory and you don't want to overwritten
+them when FILECOPY is run, you may specific the top address of the
+memory available to FILECOPY plus one. FILECOPY will not use memoey 
+above that address but it is not necessary the FILECOPY use all the
+memory available to it. For example the RAE text buffer begin at $2000,
+you may given $2000 as the third parameter to the FILECOPY.
+ 
+filename,source unit,dest. unit(,HIMEM) -> FILECOPY.COM,0,1,2000
+ 
+     If you have only one drive (single or double side), and you want
+to copy file to different diskette, you can still use this program.
+If the source and dest. unit is the same drive (e.g. unit 0 and 2 refer
+to the same drive but different side), FILECOPY will ask you to insert
+the source diskette and destination diskette at suitable time. If you
+really want to copy file from one side to the other side of the drive
+you may $80 to source unit OR destination unit. Below are some examples:
+ 
+FILECOPY V1.0
+filename,source unit,dest. unit(,HIMEM) -> FILECOPY.COM,0,0,2000
+ 
+Put in SOURCE diskette then press RETURN
+copying -> FILECOPYCOM
+Put in DEST.  diskette then press RETURN
+ 
+ 
+FILECOPY V1.0
+filename,source unit,dest. unit(,HIMEM) -> FILECOPY.COM,0,82
+copying -> FILECOPYCOM
+ 
+//
+
+>

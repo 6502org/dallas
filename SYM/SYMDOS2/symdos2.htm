@@ -1,0 +1,411 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>New Page 4</title>
+</head>
+
+<body>
+
+<p>Updated&nbsp;</p>
+
+<p>1-16-2003 Added comments about using 3.5 inch disk drives.&nbsp; Looks
+promising.</p>
+
+<p>1-19-2003 Added FMT&amp;CPY source code.&nbsp; Added <a href="../Sample%20run%20of%20SYM%20using%20SYMDOS2%20this%20example%20shows.txt">screen
+capture</a> while using SYMDOS2</p>
+
+<p>1-21-2003 Added Commodore DOS code for use at&nbsp; $9000</p>
+
+<p><b>Background&nbsp;</b></p>
+<p>This area describes my evolution thru three Floppy Disk Operating Systems for the SYM.&nbsp;
+The first system is based on using a Commodore 1541 Disk Drive connected to the
+SYM.&nbsp; The other two&nbsp; systems are very similar and are based on software written by Kin Ping Kwok of Hong Kong China and
+hardware that I personally designed..&nbsp; These systems were the result of
+several years of evolution of both hardware and software.&nbsp;&nbsp; I will
+describe all three systems below.</p>
+<p>I have developed and worked on many 6502 projects over the past 24 years using
+the SYM as a development system.&nbsp;I have used several commercial development
+systems purchased from Motorola and based on several derivatives of the M6800
+and in my opinion the SYM based development system is every bit as good as these
+much more expensive systems.&nbsp; The SYM has 72 lines of&nbsp; I/O built in
+without the need to add extra hardware.&nbsp; This is quite a bit and adequate
+for most product development. The SYM also has a very friendly and powerful
+monitor with a good and expandable debug capabilities.&nbsp; The RAE-1 Resident
+Assembler Editor is more than adequate for code development.&nbsp; Couple these
+features with several pieces of software that were written in the SYM Users
+Group such as DISARAE which is a symbolic disassembler that generates RAE
+formatted source code and you have the makings of a good development
+platform.&nbsp; The main drawbacks with the system was not having a good disk
+storage system, needing more RAM and a standard serial UART.&nbsp; The hardware
+and software I describe below fill in the gaps of the SYM by adding these
+features.</p>
+<p>&nbsp;I have also found it very useful as an EPROM
+programmer for other projects that were based on other platforms such as the
+Z80, M6800 and so on.&nbsp; I would generate the object code somewhere else and
+transfer it to the SYM over the serial cable.&nbsp; After getting the code to
+the SYM, I would save the file to disk, and burn the EPROM using one of the various EPROM boards and software that I
+have made for the SYM.&nbsp;</p>
+<p>In the computer world it is unusual to find a system over 20 years old that
+still has a useful purpose.&nbsp; After the 65c02 came out, I replaced the 6502
+chip in the SYM with one of the newer 65c02 chips and ran it with no
+modifications for several months. I took it out and replaced the standard 6502
+after evaluating the new 65c02 instruction set.&nbsp; The assembler was not set
+up to handle the new instructions and I had had enough of hand assembly so there
+was no advantage to the 65c02.&nbsp; Later on there were articles describing
+changes to the RAE assembler and DISARAE disassembler that would handle the new
+65c02 instruction sets, but I never got around to making these changes.&nbsp; I
+simply continued to use the original 6502 in my projects.&nbsp; I started using
+chips like the 68hc11 for new designs and put the SYM on the back burner for
+just maintenance of earlier projects based on the 6502.</p>
+<p><b>Commodore 1541 System</b></p>
+<p>The DOS for this setup was purchased from Ronald A. Jordan who sold this DOS
+thru his company, Jordan &amp; Associates.&nbsp; This 1541 DOS system was sold
+as&nbsp; object code on a cassette tape.&nbsp; For an additional fee&nbsp; he
+would&nbsp; burn an EPROM as well as provide the object code on cassette tape
+and for still another an additional fee, he would provide the source code on
+cassette tape.&nbsp; The 1541 physical interface was also provided by Jordan and
+consisted of a very simple box with one 7416 hex inverter chip with the mating
+connectors for the SYM and <a href="../1541%20DOS/1541drive.htm">C1541 Disk Drive</a>.&nbsp;
+I used this system briefly during the time I was making the other version of DOS
+work.&nbsp; The 1541 DOS was much better than cassette tape, but used expensive
+Commodore disk drives and was a little cumbersome to use.&nbsp;</p>
+<p>I ordered only the 1541 Object Code on cassette tape.&nbsp;I had a good
+dissassembler to RAE program called <a href="../SYM%20Projects/DISARAEM/DISARAEM_RAE.TXT">DISARAE</a>
+that would allow me to take the object code and
+generate the source code if&nbsp; I needed it, so I thought I would save the
+additional money.&nbsp; Here is a <a href="../1541%20DOS/1541DOS_RAE.TXT">source
+code</a> listing generated by DISARAE of the object code from $7000.&nbsp; This
+file can be loaded into RAE and edited to rename the temporary labels and
+comments to make it more readable if needed.&nbsp; The&nbsp; user manual that
+came with the object code has the printout of the assembly listing of the fully
+commented source code, so it would just take a little time to clean up the
+DISARAE'd version.</p>
+<p>Here is the object code assembled to run at <a href="../1541%20DOS/1541DOS_OBJ_PTAPE.TXT">$7000
+in SYM paper tape format</a>.&nbsp; Note this code is assembled to run at $7000
+but will load into $1000 from the paper tape load.&nbsp; This is where I have
+RAM in the memory map and where I buffer data that will be used by the EPROM
+programmer to burn an EPROM.&nbsp; This code could be easily entered into the
+SYM, burn one EPROM and have a SYM with C1541 disk drive system up and running
+in one evening.&nbsp; Here is the object code assembled at <a href="../1541%20DOS/1541DOS%209000.TXT">$9000
+in SYM paper tape format</a>.&nbsp; Same rules apply for loading etc.</p>
+<p> The package came
+with a <b><a href="../1541%20DOS/1541Manual.htm">User<u> </u>Manual</a></b> , <a href="../1541%20DOS/1541cassette.htm">cassette
+tape</a> with source code and the <a href="../1541%20DOS/1541interface.htm">interface</a>.&nbsp;
+Two versions of the object&nbsp; code were provided on the tape.&nbsp; One
+object code file was assembled to reside at $7000
+and an alternate version was assembled to run at $9000.&nbsp;
+I burned a 2532 EPROM using one of my <a href="../../SYM/SYM%20Projects/2716-2532%20EPROM%20BURNER/2716-2532.htm">EPROM
+programmers</a>&nbsp; to use the code at $9000.</p>
+<p>After plugging the EPROM into the SYM board and connecting the drive, I was
+up and running this DOS.&nbsp; As I said this DOS worked fine, but having only
+one disk drive made disk copying and file transferring cumbersome.&nbsp; At that
+time the 1541 disk drive was fairly expensive but they were readily available.&nbsp;
+This was a quick method to have a long wanted disk system.&nbsp; After I got one
+of the SYMDOS2 systems running (described below), I never used the 1541 DOS again.&nbsp; The newer SYMDOS2 was so much more robust and easy to use and it
+did not require tying up one of the edge connectors that I used so much in my
+other projects.</p>
+<p><b>Conclusion</b></p>
+<p>If you want to have a disk drive on your SYM this is an easy way to make it
+happen.&nbsp; All you need is a 1541 disk drive and a SYM.&nbsp; You could have
+them working together in one evening with no problem.&nbsp; This system should
+also be adaptable to the AIM65 or other similar 6502 systems as well.</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><b>SYMDOS2 System</b></p>
+<p>During
+1985 I was reading&nbsp; thru old copies of SYM-PHYSIS news letter issue number 9 page12
+about a three programs written by a group member named Kin Ping Kwok that were enhancements to the
+RAE-1 editor/assembler.&nbsp; Issue number 9 had been published 4 years earlier in
+1981.&nbsp; During this four years, the SYM Users group had closed up and the
+SYM was pretty well dead, everybody had moved on to bigger and better
+things.&nbsp; I, however, was still using my SYM and having fun learning.&nbsp;
+I was still&nbsp; using a cassette tape as my mass storage device.&nbsp;
+Remember things were very expensive then and I was, well, pretty tight with
+money.&nbsp; Anyway, after re-reading the SYM-PHYSIS article, I was having
+trouble figuring out one part of the article.&nbsp; I telephoned the guy who
+used to publish the users group magazine, H. R. Luxenberg.&nbsp; I had been a
+member of the group all throughout its life and had talk to him on a couple of
+occasions for various reasons.&nbsp; Lux did not know the answer to my question,
+but he did give me the address of Mr. Kwok who had written the article.&nbsp; I
+took a shot in the dark and wrote Mr. Kwok a letter to ask my question about
+the program he had written.&nbsp; I also asked him in the letter if he happened
+to have copies of the RAE user notes that were no longer available and what else
+he had in the way of SYM material..&nbsp; Mr. Kwok wrote me back with the
+information I had asked for and during his letter he mentioned that most of his
+SYM material was work he had done centered around the perSYMone FDC-1 disk
+controller.&nbsp; He had written an completely new SYMDOS2 to replace the DOS
+that was being used on the perSYMone disk controller.</p>
+<p>Mr. Kwok and I exchanged several letters over the next 3 or 4 years.&nbsp;
+During this time I was still using my SYM and&nbsp; building various hardware
+and software projects for it.&nbsp; One of the things I got from Mr. Kwok was a
+copy of the original perSYMone FDC-1 schematic <a href="fdc_sheet1.pdf">sheet1</a>
+<a href="fdc_sheet2.pdf">sheet2</a> this design was based on a WD 1791 disk
+controller chip.&nbsp;&nbsp;</p>
+<p>After studying this schematic, I decided I would modify a spare disk
+controller board I had that was removed from a Radio Shack TRS 80
+computer.&nbsp; The TRS80 Controller&nbsp; had most of the
+basic electronics that I needed and I decided I could make several dozen trace
+cuts and make it work on my SYM this design was based on the WD 1793 controller
+chip.&nbsp; I modified one of these controllers and
+made it work as a disk system on one of my SYM's.&nbsp;The modified drawings are
+shown in <a href="trs80%20sheet%201.PDF">sheet
+1</a> and <a href="trs80%20sheet%202.PDF">sheet 2</a> .&nbsp; Photos of this <a href="../Early%20Sym/HD600107.JPG">board</a>
+and system are shown in the <a href="../../old_sym.htm">Early Sym</a> section.&nbsp; Notice
+in this system, the extra space where I started with full size disk
+drives.&nbsp; These shown in the photos were later 1/2 height
+replacements.&nbsp;&nbsp;</p>
+<p><b>Please note that I would not recommend this approach using a TRS80
+controller.&nbsp; This information is presented for reference only.&nbsp; It
+would be much cheaper and easier to build the next version to be discussed.</b></p>
+<p>After making this setup work and loving the SYMDOS2 disk system, I decide to build
+another system&nbsp; from scratch.&nbsp; I designed this system to combine all
+of the features of my Early Sym into a more streamline system using newer memory
+and disk controller chips that were becoming available.&nbsp; By this time the
+price of chips had come way down and disk drives were much cheaper and available
+in 1/2 height size for a reasonable price.&nbsp; This <a href="sym1.htm">last
+system</a> combined all of the features I wanted in a nice compact case that was
+easy to move around.&nbsp; I started with a new SYM that I had bought and made
+several <a href="Board%20Modifications.pdf">Board Modifications</a> that had
+been discussed in various application notes etc.&nbsp; The overall system
+interconnect is shown in the <a href="system%20configuration.pdf">system
+configuration</a>.&nbsp;&nbsp;Note that the dates on some of these drawings is
+much later than when the hardware was built.&nbsp; I made some of&nbsp; the
+interconnect drawings one time when I had forgotten exactly what I had done 5 or
+6 years earlier.</p>
+<p>I designed and built a single plug in board on which I included <a href="../a32kram.PDF">32k RAM&nbsp;</a>,
+the&nbsp; <a href="../SYMDOS1.PDF">SYMDOS2</a>  controller electronics, a <a href="r6551%20second%20serial.PDF">R6551
+serial port</a>&nbsp; , and a real time clock based on the <a href="r6551%20second%20serial.PDF">Intersil
+7170</a> clock chip.&nbsp; All of the&nbsp; electronics parts&nbsp; were installed on one single project board that used to be sold by Radio
+Shack.&nbsp;This board is shown in this <a href="ramdiskphoto.htm">photo</a>.&nbsp;&nbsp;
+All of the IC's were installed in sockets and point to point wiring was used on
+the back side of the board.&nbsp;&nbsp;This single card plugged into the SYM
+provided all of the additional system features that I had found necessary in my
+8 or so years of using the SYM.&nbsp; The 32k memory section was designed using
+what was then newly available 8k static memory chips.&nbsp; The disk controller
+was redesigned using a later model Western Digital WD2793 controller chip.</p>
+<p>A year or so after the board was in use, I installed a Dallas Semiconductor<a href="http://dbserv.maxim-ic.com/quick_view2.cfm?qv_pk=2638">
+DS1216B</a>&nbsp; SmartWatch/RAM under the highest addressed RAM chip.&nbsp; In addition
+to providing another real time clock, this socket extender made the RAM plugged
+into it nonvolatile.&nbsp; This is a convenient place to load object code that
+is used frequently like the R6551 I/O routines and printer drivers etc.&nbsp;
+Having the code there is better than having an EEPROM today, they were always
+there, easy to modify and required no special programming.&nbsp; You just store
+the code as you would in any RAM location.&nbsp; Any program can use the address
+space.&nbsp; I typically loaded the code I wanted to be there high in memory and
+worked my way down in memory as I needed it.&nbsp; The real time clock is a shadow setup
+where it does not really occupy any address space, there is a special way to
+access the memory to extract the clock data.&nbsp; This SmartWatch/RAM has an integral
+battery that is good for more than 10 years.&nbsp; Mine is still
+working 15 years later.&nbsp; This socket can be seen if you look closely at the
+RAM chip nearest you in the <a href="../HD600107.JPG">photo</a>.&nbsp;</p>
+<p>The software was written by Mr. Kwok was intended to run on the perSYMone
+FDC-1 Floppy Disk Controller that was manufactured and sold by the SYM Users
+Group in July 1982.&nbsp; This controller was originally shipped with perSYMone
+DOS and Mr. Kwok simply wrote a whole new DOS to run on the perSYMone FDC-1
+hardware.&nbsp; Mr. Kwok lived in China when I first began my communications
+with him and was later a graduated student in Computer Engineering at U.C.
+Davis.&nbsp; </p>
+
+<p>&nbsp; </p>
+
+<p>&nbsp;The following pages describe the SYMDOS2 </p>
+
+<p><a href="SYDS0106_RAE.TXT">SYMDOS2 Users Manual page 1-6</a></p>
+<p><a href="SYDS0712_RAE.TXT">SYMDOS2 Users Manual page </a><a href="SYDS0106_RAE.TXT">7-12</a></p>
+<p><a href="SYDS1319_RAE.TXT">SYMDOS2 Users Manual page </a><a href="SYDS0106_RAE.TXT">13-19</a></p>
+<p><a href="SYDS20_RAE.TXT">SYMDOS2 Users Manual page </a><a href="SYDS0106_RAE.TXT">20</a></p>
+
+<p>File I/O handler Source Listing part of SYMDOS2.&nbsp; This part should not
+require modification to use with different controller hardware.</p>
+
+<p><a href="FIO3((%20RAE.TXT">FIO3((</a>&nbsp;&nbsp; Part 1&nbsp;&nbsp; This is
+a split source code file that is linked during assembly.</p>
+
+<p><a href="FIO3))%20RAE.TXT">FIO3))</a>&nbsp;&nbsp; Part 2</p>
+
+<p>Disk Drive Interface source listing part of SYMDOS2.&nbsp; This part is
+hardware dependent based on the particular controller chip.&nbsp; Application
+information on the Disk Drive Interface.</p>
+
+<p><a href="DDI2_DOC.txt">DDI2_DOC</a>&nbsp;&nbsp;&nbsp; Notes about
+modifications</p>
+
+<p><a href="DDI2A_C_RAE.TXT">DDI2A_C&nbsp;</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Source code with comments</p>
+
+<p>&nbsp;</p>
+
+<p>Note: It has been almost 20 years since I have actually modified and
+assembled this code.&nbsp; Because it is so terribly easy to make a mistake or
+forget something from day to day let alone some 20 years later, I have included
+the actual memory dump from my working SYM.&nbsp; The following object code is
+currently running on my SYM from EPROM at address $9000.&nbsp; I moved the
+object code to $1000 so I could issue, SP, the make paper tape command.&nbsp;
+The reason to move the code first is, a load from paper tape, LP, command will
+load the code back were it was punched from.&nbsp; So, unless you install RAM at
+$9000 you could not load the code.&nbsp; Moving it to $1000 first allows the
+paper tape to be loaded back to $1000 where you will most likely have RAM.&nbsp;
+Here are the exact commands I used to save the EPROM contents of my working
+SYMDOS2 system:</p>
+
+<p>F FF,1000,1FFF&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; This will fill
+memory with $FF from address $1000 thru
+$1FFF&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+
+<p>This is to be sure the following block move worked properly.</p>
+
+<p>B 1000,9000,9FFF&nbsp;&nbsp;&nbsp; This will block move the code from
+$9000-$9FFF to $1000-$1FFF</p>
+
+<p>SP 1000,1FFF&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+This will output the code in paper tape format</p>
+
+<p><a href="SYMDOS2%20PTAPE.TXT">SYMDOS2 EPROM</a> running from $9000 on my SYM in paper
+tape format.</p>
+
+<p>So if you would like to get a DOS running on your SYM you can make an EPROM
+from this object code just described and it should work.&nbsp; The additional
+hardware you would need has been described above, but I will re-list it here for
+clarity.&nbsp; First look over the&nbsp; <a href="Board%20Modifications.pdf">Board Modifications</a> that
+I have made and notice the decode signal I take off of the SYM..&nbsp; The overall system
+interconnect is shown in the <a href="system%20configuration.pdf">system
+configuration</a>.&nbsp;&nbsp;You need at a minimum the&nbsp; <a href="../SYMDOS1.PDF">SYMDOS2</a> 
+controller electronics and obviously at least one disk drive and power
+supply.&nbsp; You could operate the system with 4k (1k with modifications) of
+RAM, but as cheap as memory is I would install 32k as shown in <a href="../a32kram.PDF">32k RAM</a>
+or better yet use a later 32k x 8 static RAM chip for a one chip total memory
+configuration.&nbsp;&nbsp;<i> </i>I would not use the Intersil clock chip I
+would use one of the later <a href="http://dbserv.maxim-ic.com/quick_view2.cfm?qv_pk=2638">32k
+Dallas Smart/Watch</a> sockets under the 32k RAM.&nbsp; There may&nbsp; be later models of disk controller chips,
+but I have not kept up with what is being manufactured.&nbsp; The one I describe
+is pretty simple and only has a few chips, and it is a proven design.&nbsp; You
+also need some way to burn an EPROM.&nbsp; I used a Motorola 2532 EPROM and
+programmed it using the <a href="../../SYM/SYM%20Projects/2716-2532%20EPROM%20BURNER/2716-2532.htm">EPROM
+programmers</a>.</p>
+
+<p>The disk drives I used are IBM PC type 360k 5-1/4 inch double sided
+drives.&nbsp; I have never tried it, but I see no reason the later 720k or even
+1.4M 3-1/2 inch drives would not work.&nbsp; I think the later drives just had
+more tracks. I used a salvaged power supply from an old computer that had +5,
++12, and -12 in a nice little package, but anything that has these voltages
+would work fine.&nbsp; Burning the EPROM required another power supply</p>
+
+<p><b>UPDATE 1-16-2003</b></p>
+
+<p>I removed one of the 360k drives and plugged in an IBM PC 1.44Mb drive in
+place of one of the&nbsp; 360k drives.&nbsp;&nbsp;&nbsp; I successfully
+formatted and disk copied files from the other 360k disk to the 3-1/2 inch disk
+with a 720k disk in the drive.&nbsp; I tried the same thing with 1.44Mb media in
+the drive and it looked like it worked, I could list the directory ok, but was
+getting crc errors when trying to read files.&nbsp; I did not experiment
+further, but this shows the later model dives can be used ok.&nbsp; The software
+allows you to choose between several track densities and several sectors per
+track and bytes per track.&nbsp; It may be possible to use the 1.44 media by
+adjusting some of these parameters.&nbsp; I have always used the default of 35
+tracks, double density and&nbsp; 256 bytes per sector for my 5-1/2 drives.</p>
+
+<p>The main point here is you could use later model 3-1/2 drives and either find
+720k media or tape over the high density hole in the readily available 1.44Mb
+disks.</p>
+
+<p><b>DOS2 Utilities</b></p>
+
+<p><b>Note all file names ending RAE denote a RAE source code file.&nbsp; Names
+ending in DOC are a text file giving instructions about a program.&nbsp; Names
+ending in OBJ are SYM paper tape format object code files.&nbsp; I have included
+source code files for most items, that way you can assemble them at any address
+you like.&nbsp; A few of the files like the FORTH language files are object code
+only.&nbsp; I typed this code in by hand in HEX, so I do not have the source
+code.</b></p>
+
+<p><a href="CAT_C.RAE.TXT">CAT_C_RAE&nbsp;</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Disk Catalog Listing with comments.&nbsp;&nbsp;</p>
+
+<p><a href="CAT_DOC.TXT">CAT_DOC&nbsp;</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Instructions for catalog program</p>
+
+<p><a href="FILECOPY_C.RAE.TXT">FILECOPY_C_RAE</a>&nbsp;&nbsp;&nbsp; Filecopy
+program with comments</p>
+
+<p><a href="FILECOPY_DOC.RAE.TXT">FILECOPY_DOC</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Instructions for filecopy program</p>
+
+<p><a href="FORMAT_RAE.TXT">FORMAT_RAE</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Disk formatting utility</p>
+
+<p><a href="FMT_CPY.TXT">FMT&amp;CPY</a>&nbsp;object&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Disk Format and Copy utility Object code&nbsp;</p>
+
+<p><a href="FMT_CPY_rae.TXT">FMT&amp;CPY_RAE</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Source code for above program</p>
+
+<p><a href="IDSECT-RAE.TXT">IDSECT_RAE&nbsp;</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Example of how to modify disk to start any program</p>
+
+<p><a href="IDSECT_MY.TXT">IDSECT_MY_RAE</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+The IDsector I use on my RAE startup disk saves lots of time by&nbsp;</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+linking to the disk I/O, starting RAE and SETing new memory boundries</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+without having to type anything.&nbsp; Any other program or language could
+use&nbsp;</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+technique to auto-start from disk.</p>
+
+<p>&nbsp;</p>
+
+<p><b>Other SYM Programs</b></p>
+
+<p><a href="A9600-RAE.TXT">A9600_RAE&nbsp;</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+9600 Baud Terminal Patch</p>
+
+<p><a href="TAPE%20DIR_RAE.TXT">TAPEDIR_RAE</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Cassette tape directory program.</p>
+
+<p><a href="XRFA_RAE.TXT">XREFA_RAE&nbsp;</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Part 1 of excellent cross reference listing table for use with RAE</p>
+
+<p><a href="XRFB_RAE.TXT">XREFB_RAE</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Part 2</p>
+
+<p><a href="RAE%20TO%20ASC.TXT">RAE_TO_ASC&nbsp;</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Will convert RAE format file to ASCII</p>
+
+<p><a href="TINYFORTH_OBJ.TXT">TINYFORTH_OBJ</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Object code for Tiny Forth language. Load &amp; G 200</p>
+
+<p><a href="FLEXFORTH_OBJ.TXT">FLEXFORTH_OBJ&nbsp;</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+FLEX-FORTH v1.0 by GEOTEC object code. Load code &amp; G 2000</p>
+
+<p>Note:&nbsp; I have the GEOTEC manual that goes with the FORTH, but it is
+several hundred pages long.&nbsp; Here is the <a href="flex%20forth%20intro.pdf">introduction</a>
+page.</p>
+
+<p><a href="flex%20forth%20disk%20I-O%20notes.pdf">Flex Forth disk I/O notes</a></p>
+
+<p><a href="flex%20forth%20I-O%20notes.PDF">Flex Forth to SYMDOS2&nbsp; I/O</a>
+Notes I wrote</p>
+
+<p><a href="FLEXDISK_OBJ.TXT">FLEXDISK_OBJ</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+FLEX-FORTH object code with SYMDOS2 links. Load &amp; G 2000&nbsp; I used these
+routines to read and write to the SYMDOS2 disk several times with no problems,
+but they are otherwise untested.</p>
+
+<p><a href="flex%20forth%20c1541%20I-O.PDF">Flex Forth Commodore 1541 I/O notes</a>.&nbsp;
+I started working on these, and only partially finished.</p>
+
+<p><b>Conclusion</b></p>
+
+<p>So ends the SYM DOS story.&nbsp;I have other misc SYM programs and special
+software that I have written for various A/D, D/A, LED displays, etc. that I may
+post as time permits.</p>
+
+</body>
+
+</html>

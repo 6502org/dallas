@@ -1,0 +1,401 @@
+PR
+ 
+ 
+ 
+ 
+ 
+ 
+ For contimue to disk in assembling multiple source file, enter 
+      .CT filename u<cr> 
+ instead of .CT only in continue to tape. See RAE reference manual 
+ for the use of .CT. 
+ 
+ 
+ 
+ OPERATION WITH DDI (DISK DRIVE INTERFACE) 
+ 
+      Only  read/write  sector  will be discussed  here.  The  DDI 
+ parameter control block is located at $A600-$A605. 
+      $A600     drive number (00 or 01) 
+      $A601     track number,most sigificant bit indicate side no. 
+      $A602     sector number (01 to max. no. of sector) 
+      $A603     lower byte of the transfer address 
+      $A604     higher byte of the transfer address 
+      $A605     IFLAG, setting to 00 will turn off the drive after 
+                read/write.  If  the verify bit of IFLAG is set to 
+                1,  then  before every disk operation,  track  no. 
+                will be verified.  (In origional DOS, track no. is 
+                veified only when ITRACK not equal to CURTRK) 
+ 
+      After setting the above parameters,with: 
+           .R<cr> 
+           P XXXX,<SPACEBAR> 
+           S   XX,<SPACEBAR> 
+           F   XX,<SPACEBAR> 
+           A   XX,04 for read or 05 for write then <cr> 
+      Then .G 9800<cr> to read/write the sector. 
+ 
+      NOTE:  When  calling  DDI,  no error message  will  display. 
+             Return with carry flag set indicate error has occured 
+             and error code is in accumulator. 
+ 
+      The  no.  of  retries  is 3 for seek and  4  for  read/write 
+ (include 2 restores). 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                                 7 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                        DISKETTE FORMAT 
+ 
+     The  diskette  is divided into a number of blocks  of  memory. 
+ Each  block occupy 1 or more sectors.  Each program will at  least 
+ occupy 1 block. (see also INTERFACE AND ALTENATION) 
+ 
+    track     sector 
+      0         1       ID  sector  for  saving  system  parameter 
+                        and/or a small program 
+      0       2-end     reserved for future expansion 
+      1      1st 3 blks directory storage. 
+         (see INTERFACE AND ALTERNATION) 
+ 
+ All other sectors      program files. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                     DIRECTORY FORMAT 
+ 
+     The  following  is a directory entry  format.  Each  directory 
+ entry occupy 32 bytes. 
+  11 bytes: file name. 
+  1  byte : extent number. 
+  2  bytes: hex start address. 
+  2  bytes: hex end address. 
+  16 bytes: block numbers. 
+ 
+     In  one  directory entry,  it can only save 16 block  numbers. 
+ Therefore if file size exceed 16 blocks,  another directory  entry 
+ will open with extent number equal to 2,3,4..... The extent number 
+ may  be  up to $7F.  In directory listing,  only file with  extent 
+ number equal 1 will be displayed. 
+ 
+     In a directory entry on diskette, 
+ first byte,bit 7 in DD diskette =1 indicate it has be used. 
+                     SD diskette =0    "     "   "  "   "  . 
+ 
+ second byte,bit 7,both SD & DD   =1 deleted 
+                       diskette   =0 file is active. 
+ 
+ third byte,bit 7 =0 normal 
+                  =1 hide directory 
+ 
+ fourth byte,bit 7=0 read/write 
+                  =1 write protected or read only 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                                 8 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                        SOME HINTS 
+ 
+ 
+     If you delete a file that you need.  You can only recover  the 
+ file  if  you have just delete it by using S4 command or  you  are 
+ sure about  the  blocks previously occupied by the  file  and  the 
+ directory entry(ies)have not been over-written. 
+ 
+     To  recover the file,  use direct command to DDI to read  the 
+ directory  sector which contain the deleted directory  entry(ies) 
+ and then set bit 7 of the second byte to zero. Make sure that all 
+ extents  have done the same things.  (no need to worry about  the 
+ memory map.) 
+ 
+ 
+ 
+     In READ VERIFY mode,  if bad sector is detected,  only the bad 
+ block will be deleted from the memory map.  A file with file  name 
+ BAD-SEGMENT will open occupying the bad block.  But it will not be 
+ display during directory listing. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                                 9 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                     INTERFACE AND ALTERNATION 
+ 
+      Below  is  the  description of the  operations  during  cold 
+ start. 
+ 1)   Set up the necessary vectors, such as URCVEC, URCNEW, IRQVEC 
+      ...etc. 
+ 2)   Move  the  default values to appropiate locations  and  make 
+      necessary initialization. 
+ 3)   Get  the  drive  and diskette  information,  such  as  size, 
+      density, sector length, sector/track...etc 
+ 4)   Read  the  second  to eighth byte of track 0 sector  1  into 
+      memory  if  first byte equal to IDMARK  ($4B).  These  seven 
+      bytes include the buffer start address, sector/block...etc. 
+ 5)   Read  the  track 0 sector 1 into memory  starting  from  the 
+      buffer start address read in the last operation. 
+ 6)   If  first byte of the sector equal to IDMARK,  then jump  to 
+      START  ADDRESS+$10.  If IDMARK do not present,  then it will 
+      simply return. 
+ 
+      Every time before cold start ($9000,  $9003 or $9006), it is 
+ better to press reset.  Since in initization, URCVEC will move to 
+ URCNEW  and  set  URCVEC to point to SYMDOS2,  cold  start  twice 
+ without pressing reset will make both URCVEC and URCNEW point  to 
+ SYMDOS2. 
+ 
+      In operation 3),the following disk drive parameters are set: 
+        STEPRT  $A611     It  store the step period of the  drive, 
+                          default is 2, it can be 0 to 3. See 1791 
+                          data sheet. 
+        FFLAGS  $A612     Bit  7=0  indicate a 8" drive system  is 
+                          installed.  Bit 7=1 indicate a 5"  drive 
+                          system is installed. 
+        DLYTM   $A613     For a 8" drive system, it store the head 
+                          load delay time. Delay time is in ms=2 * 
+                          (DLYTM). For a 5" drive system, it store 
+                          the  motor on time delay.  Delay time is 
+                          in ms=4 * (DLYTM).  If two index  cannot 
+                          be sample within this period,  the drive 
+                          is considered as not ready.  The default 
+                          for 8" drive is 17 and 5" drive is 250. 
+                          Moreover for 5" drive, after detecting 2 
+                          index  pulus,  if the time  between  two 
+                          successive   index  is  20ms+/-4%   ,the 
+                          drive is also considered as ready. 
+        NOTRKS  $A614     default as 77 for 8" drive system and 35 
+                          for 5" drive system. 
+      The  above values except FFLAGS can be changed by user after 
+ cold start.  For example,  change NOTRKS to $28 for a 40 track 5" 
+ disk drive. However other values have to change accordingly, e.g. 
+ MAXBLK. 
+ 
+ 
+      The  seven  values read in operation 4) can be set  by  user 
+ after cold start.  They may also be changed during cold start  by 
+ 
+ 
+                                10 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ writing an ID sector.  See below for the steps required to set up 
+ an  ID sector.  If other diskette is inserted in the drive  after 
+ cold  start  and an ID sector is present,  SYMDOS2 will  set  the 
+ values below again EXCEPT WRKBUF. 
+        WRKBUF  $A609-    it is the buffer start address.  Default 
+                $A60A     is  $F00.   However,  SYMDOS2  will  use 
+                          memory  in  the  range  (WRKBUF)-$48  to 
+                          (WRKBUF)+sector length. 
+ NOTE: the meaning of WRKBUF is different in the original DOS  and 
+       in SYMDOS2.  It has been described in the above. Don't make 
+       mistake when you want to change the default. 
+ 
+        SEC/BLK  $A60B    The  default is 3.  See table below  for 
+                          more information. 
+        MAX.BLK  $A60C    The default is 203.  See table below for 
+                          more information. 
+        DMXSEC   $A60D    The  max.  no.  of sector for  directory 
+                          storage.   The   default  for   no.   of 
+                          directory  block  is 3 and  default  for 
+                          SEC/BLK is 3.  Therefore the default for 
+                          DMXSEC   is  9  (DMXSEC=SEC/BLK*no.   of 
+                          directory  block).  See table below  for 
+                          more information. 
+        DIRMASK  $A60E    Mask of diretory  for memory map. Change 
+                          according  to  the number  of  directory 
+                          block.  If  number of directory block is 
+                          3, then set the lower 3 bits to zero and 
+                          another bit to 1.  i.e.  %11111000.  The 
+                          default  is $F8 for 3 directory  blocks. 
+                          See  table  below for more  information. 
+        DIR/LIN  $A60F    It store the no. of directory listed per 
+                          line MINUS 1.  The default is 5,  i.e. 6 
+                          directory  listing per line.  It is  set 
+                          for 80 column terminal. 
+ 
+ Table below show the recommand sector/block and maxinium number of 
+ blocks. 
+ 
+ sector  /     I 
+ /block /no. ofI   128       256       512       1024       bytes 
+       / blocksI                                            /sector 
+ --------------+-------------------------------------------------- 
+ 35TRK 5" SD   I   3/204     2/170     1/170     1/68 
+ 35TRK 5" DD   I   4/255     3/204     2/153     1/170 
+ 77TRK 8" SD   I   8/247     5/228     3/202     2/152 
+ 
+ 
+     You  can use larger number of sector per block but  number  of 
+ block will be smaller. The formula is : 
+ 
+   no. of block=INT((sector/track)*(no. of track-1)/(sector/block)) 
+ 
+ 
+ 
+ 
+ 
+ 
+                                11 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Table  below show the recommand no.  of directory block and value 
+ of DIRMASK. 
+ 
+   no. of    /      I 
+ dir. blk.  /DIRMASKI   128       256       512       1024  bytes 
+           /        I                                      /sector 
+ -------------------+-------------------------------------------- 
+      35TRK 5" SD   I   3/$F8     3/$F8     3/$F8     1/$FE 
+      35TRK 5" DD   I   4/$F0     3/$F8     2/$FC     2/$FC 
+      77TRK 8" SD   I   3/$F8     2/$FC     2/$FC     2/$FC 
+       DMXSEC = NO. OF DIR. BLK. * SECTOR/BLOCK 
+       MAX. NO. OF DIRECTORY = DMXSEC * BYTES/SECTOR / 32 
+ 
+ Maxinium number of directory block is 8 and total number of sector 
+ for directory must not exceed number of sector per track. 
+ 
+ 
+ 
+      The  operation 5) and 6) is very useful in future expansion. 
+ It  may be used to load expansion routine from the  diskette  and 
+ set  up necessary vectors.  (track 0 sector 2 to end of track  is 
+ reserved  for saving future expansion routine.) It do not do  any 
+ things now because at $10 of the ID sector contain a return only. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                                12 
+ 
+ 
+ 
+//
+
+>

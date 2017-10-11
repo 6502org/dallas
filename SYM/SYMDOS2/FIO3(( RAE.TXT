@@ -1,0 +1,604 @@
+
+;*********************************
+;*                               *
+;*      FILE I/O HANDLER III     *
+;*        COPYRIGHT AUG,83       *
+;*        BY KIN-PING KWOK       *
+;*                               *
+;*********************************
+ 
+; BASIC ZERO PAGE
+ 
+WARMJMP    .DE $00
+MSGJMP     .DE $03
+PGMSTL     .DE $7B      ;Program start addr
+PGMSTH     .DE $7C
+PGMENL     .DE $7D      ;Program end addr
+PGMENH     .DE $7E
+MEMBDL     .DE $87      ;Memory limit
+MEMBDH     .DE $88
+BSAVVEC    .DE $C6      ;Save command vector
+BLODVEC    .DE $C9      ;Load command vector
+NXTCHR     .DE $CC
+GETCHR     .DE $D2
+ 
+; FDC PAGE ZERO
+ 
+FCB        .DE $FC      ;File Control Block
+DIRPT      .DE $E7
+MAPPT      .DE $F8
+TEMP1      .DE $E9
+OD         .DE TEMP1
+TEMP3      .DE $EB
+TEMP2      .DE $FE
+ 
+; RAE PAGE ZERO AND ONE
+ 
+TXPRES     .DE $D3      ;Present end of text file
+DCVEC      .DE $EC      ;Disc Command vector
+INPFLG     .DE $EE      ;Non zero value=input from disc
+ENTVEC     .DE $F0      ;Disc output vector
+LODVEC     .DE $F2      ;Disc input vector
+GETVEC     .DE $F6      ;Disc input data vector
+TXST       .DE $100     ;Start of text file
+TXEN       .DE $102     ;End of text file
+FILENO     .DE $110     ;Current file number
+RAEBUF     .DE $135     ;CRT input buffer
+ 
+; SUPERMON ROUTINES
+ 
+ERMSG      .DE $8171
+SAVER      .DE $8188
+PSHOVE     .DE $8208
+PARM       .DE $8220
+OUTBYT     .DE $82FA
+SPACE      .DE $8342
+CRLF       .DE $834D
+INCHR      .DE $8A1B
+OUTCHR     .DE $8A47
+ACCESS     .DE $8B86
+ 
+; SYSTEM RAM
+ 
+IDISK      .DE $A600    ;Drive number
+ITRACK     .DE $A601    ;Track no., MSB indicates side
+TEMP4      .DE ITRACK
+ISECTR     .DE $A602    ;Sector number
+IADDR      .DE $A603    ;Transfer addr
+IFLAGS     .DE $A605    ;Drive oper. flags
+ 
+; FLAGS DEFINITIONS
+ 
+MTRFLAG    .DE $80
+SELFLAG    .DE $40
+VERFLAG    .DE $20
+DFLAGS     .DE $A606
+ 
+; FLAGS DEFINITIONS
+ 
+DENFLAGS   .DE $80
+SIDFLAGS   .DE $40
+AVAIL      .DE $20
+SECLEN     .DE $03
+ 
+CURTRK     .DE $A607    ;Current track
+NOSECS     .DE $A608    ;No. of sectors/track
+WRKBUF     .DE $A609    ;Work buffer address
+PARMS      .DE WRKBUF
+SEC/BLK    .DE $A60B    ;Sectors/block
+MAX.BLK    .DE $A60C    ;Max blocks/side of disc
+DMXSEC     .DE $A60D
+DIRMASK    .DE $A60E
+DIR/LIN    .DE $A60F
+FFLAGS     .DE $A612
+UFLAGS     .DE $A61B
+DIRSEC     .DE $A61C
+URCNEW     .DE $A61D    ;New unrecog cmd vector
+DIRCNT     .DE $A61F
+PARNR      .DE $A649
+P3L        .DE $A64A
+P3H        .DE $A64B
+P2L        .DE $A64C
+P2H        .DE $A64D
+P1L        .DE $A64E
+P1H        .DE $A64F
+URCVEC     .DE $A66C
+SCNVEC     .DE $A66F
+ 
+; BAS ROUTINES
+ 
+BADLOAD    .DE $C6FC    ;Print 'BAD LOAD'
+ 
+; RAE ROUTINES
+ 
+ERROR      .DE $B00E    ;Print '!XX AT LINE YYYY/ZZ'
+RAEHOT     .DE $B05E    ;Cmd level, no set msg
+MVNEXT     .DE $B4FF    ;Move to next input field
+ 
+; FCB DEFINITIONS
+ 
+NAMBUF     .DE $00
+ACTIVE     .DE $01
+SYS        .DE $03
+PROT       .DE $04
+EXTNO      .DE $0B
+BLKIXCT    .DE $0C
+SECCT      .DE $0D
+SAH        .DE $0C
+SAL        .DE $0D
+EAH        .DE $0E
+EAL        .DE $0F
+FDIRSEC    .DE $20
+FDIRPT     .DE $21
+ 
+; PRESET VALUE
+ 
+BUFST      .DE $7F00    ;Setup for a 32K system
+PSEC/BLK   .DE $03
+PMAX.BLK   .DE 203      ;203+1 BLOCKS
+PDMXSEC    .DE $09      ;3 BLKS, 3*3=9 SECS.
+PDIRMASK   .DE %11111000
+PDIR/LIN   .DE $05      ;5+1 DIR/LIN
+IDMARK     .DE $4B
+ 
+; DDI ROUTINES
+ 
+DISKIO     .DE $9A00
+DESELECT   .DE DISKIO+3
+ 
+           .BA $9000
+           .OC
+ 
+BASENTRY   JMP BASLINK  ;Entry point for BAS-1
+ 
+RAEENTRY   JMP RAELINK  ;Entry point for RAE
+ 
+MONENTRY   JSR ACCESS   ;Entry point for MON
+           LDA URCVEC+2 :Save unrecognized vector
+           STA URCNEW+1
+           LDA URCVEC+1
+           STA URCNEW
+           LDA #H,MONLINK :Change URCVEC to point here
+           STA URCVEC+2
+           LDA #L,MONLINK
+           STA URCVEC+1
+           LDX #7
+DFLTLOOP   LDA DFLTBLOK-1,X :Cold start init.
+           STA PARMS-1,X
+           DEX
+           BNE DFLTLOOP
+           TXA
+           STA UFLAGS
+           STA IDISK
+           JSR DISKIO
+           LDA #$00
+           STA IFLAGS
+           JSR DSPS1
+           BCS GGOUTERR
+           JSR RDINBUF  ;Read in ID sector
+           BCS GGOUTERR
+           JSR SETDPT
+           LDY #0
+           LDA (DIRPT),Y :Get 1st byte of sector
+           CMP #IDMARK  ;Test for IDMARK
+           BNE MERTS    ;If not equal, exit
+           LDA *DIRPT
+           ADC #$0E     ;C=1 A=A+$F
+           TAY
+           LDA *DIRPT+1
+           ADC #0
+           PHA
+           TYA
+           PHA
+MERTS      RTS
+ 
+DFLTBLOK   .SI BUFST    ;Defaults
+           .BY PSEC/BLK PMAX.BLK
+           .BY PDMXSEC PDIRMASK
+           .BY PDIR/LIN
+ 
+MONLINK    CMP #$14
+           BNE S0CHECK
+L3CMD      JSR GETDTA
+           BCS DATAERR2
+           CMP #2       ;2 parms?
+           BEQ AR2      ;If yes, load w/relocate
+           BCS DATAERR3
+           JSR PSHOVE
+AR2        JSR CHKIV
+           BCS DATAERR3
+           LDA P2L
+           JSR USET
+           JSR SP.LDX
+GGOUTERR   BCS GOOUTERR
+           BIT UFLAGS
+           BVC MERTS    ;Run after read?
+           JMP (P1L)    ;Yes
+           RTS
+ 
+S0CHECK    CMP #$1C
+           BNE S3CHECK
+S0CMD      JSR SETPTRS
+           JSR AFCB10   ;Put new filename in FCB+$10
+           JSR CRLF
+           JSR GETNAM
+           BCS DATAERR3
+           JSR GETDTA1  ;Put old filename in (FCB)
+           BCS DATAERR3
+           CMP #1
+           BNE DATAERR1
+           LDA P3L
+           JSR USET
+           JSR SP.REN
+           BCS GOOUTERR
+           RTS
+ 
+DATAERR1   SEC
+DATAERR3   LDA #$50     ;Err code 50 is 'input error'
+DATAERR2   JMP ERMSG
+ 
+S3CHECK    CMP #$1F
+           BNE S4CHECK
+S3CMD      JSR GETDTA
+           BCS DATAERR2
+           CMP #3
+           BNE DATAERR1 :Must be 3 parms
+           JSR CHKIV
+           BCS DATAERR3
+           LDA P1L
+           JSR USET
+           JSR PSHOVE
+           JSR SP.SVX
+GOOUTERR   BCS OUTERR
+           RTS
+ 
+S4CHECK    CMP #$10
+           BNE L7CHECK
+DELCMD     JSR GETDTA
+           BCS DATAERR2
+           CMP #2
+           BCS DATAERR3
+           JSR SCAN
+           LDA P3L
+           JSR USET
+           JSR SP.DEL
+           BCS OUTERR
+           BNE OFF
+           LDA #$53
+ 
+OUTERR     PHA          ;Turn off drives, output err msg
+           JSR OFF
+           PLA
+           SEC
+           JMP ERMSG
+ 
+USERQ      JMP (URCNEW)
+ 
+L7CHECK    CMP #$18
+           BNE USERQ
+DIRLST     LDA PARNR
+           CMP #1       ;Which dir listing format?
+           BCC DIR4
+           BNE DATAERR3 :List all files
+           LDA P3L
+           JSR USET
+           JSR TSP.DIR1
+           BCS OUTERR
+           RTS
+ 
+DIR4       JSR GETDTA   ;List selected files
+           BCS DATAERR2
+           CMP #1
+           BNE DATAERR1
+           LDA P3L
+           JSR USET
+           JSR TSP.DIR2
+           BCS OUTERR
+           RTS
+ 
+SP.LDX     JSR SETPARMS
+           BCS DLRTS
+LOADX      JSR BEFLOAD  ;Load file subroutine
+           BCS DLRTS
+LOX1       JSR MOVDIR
+           JSR BEFSET
+LOX2       JSR DL2
+           BCS DLRTS
+           JSR ADJUST   ;Adj addr for loading next sector
+           BCS LOX2
+ 
+OFF        LDA #$00     ;Turn off drive
+           STA IFLAGS
+           JMP DESELECT
+ 
+DOLOAD     JSR MOVDIR
+           JSR BEFSET
+DL2        JSR NXTSEC   ;Point to next sector
+           BCC DL1
+           JSR NXTEXT   ;Point to next extent
+           BCS DLRTS
+           BEQ DOLOAD   ;Read the sector
+DL3        LDA #$57
+           SEC
+DLRTS      RTS
+DL1        BEQ DL3
+           JSR INTPRM
+           JMP DOREAD2
+ 
+SP.SVX     JSR SETPARMS
+           BCS SXRTS
+SAVEX      JSR DEL      ;Delete any file w/same filename
+           BCS SXRTS
+           LDY #EXTNO
+           LDA #0
+           STA (FCB),Y  ;Extent=0 (match for any extent)
+           JSR DUPP1INP3
+           JSR DOSAVE
+           JMP SAX3
+SAX2       JSR DS2
+SAX3       BCS SXRTS
+           JSR ADJUST
+           BCS SAX2
+           JSR DIRWRT   ;Write dir entries to disc
+           BCC OFF
+           RTS
+ 
+DOSAVE     SEC
+           ROR *OD
+           JSR NXTEXTA  ;Find 1st free dir entry
+           BCS SXRTS
+           JSR CLRDIR   ;Clr buffer for block # to 0
+           JSR BEFSET
+DS2        JSR NXTSEC   ;Point to next sector
+           BCC DS1
+           JSR DIRWRT
+           BCC DOSAVE
+SXRTS      RTS
+DS1        BNE DS3
+           JSR MKRM     ;Find 1st free block
+           BCS SXRTS
+DS3        JSR INTPRM
+           JSR DOWRITE2 :Write the sector
+           BCS SXRTS
+           LDA UFLAGS
+           AND #$02
+           BEQ SXRTS
+           JMP READVERIFY
+ 
+SP.DEL     JSR SETPARMS
+           BCS DELRTS
+DEL        LDY #EXTNO   ;error if C=1
+           LDA #0       ;  no this file if C=0,Z=1
+           STA (FCB),Y  ;  successfully deleted:C=0,Z=0
+           JSR MAPPING  ;Create the bit map
+           BCS DELRTS
+           JSR OPEN
+           BCS DELRTS
+           BEQ DEL2
+           LDA #0
+           RTS
+DEL2       LDY #PROT
+           LDA (DIRPT),Y :Test for file write protect
+           BPL DEL2.5   ;Branch if not protected
+WRPTER     LDA #$56     ;Else, write protect error
+           SEC
+           RTS
+DEL2.5     LDY #ACTIVE
+           LDA (DIRPT),Y
+           ORA #$80     ;Set MSB to show file deleted
+           STA (DIRPT),Y
+           JSR STDRBT
+           JSR DOWRITE2 :Write the dir sector
+           BCS DELRTS
+           JSR OPN2
+           BEQ DEL2
+DELRTS     RTS
+ 
+AFCB10     LDA *FCB
+           CLC
+           ADC #$10
+           STA *FCB
+           BCC RNRTS
+           INC *FCB+1
+RNRTS      RTS
+ 
+MFCB10     LDA *FCB
+           SEC
+           SBC #$10
+           STA *FCB
+           BCS MFRTS
+           DEC *FCB+1
+MFRTS      RTS
+ 
+FLEXER     LDA #$58
+           SEC
+           RTS
+ 
+SP.REN     JSR SETPARMS
+           BCS RNRTS
+RENAME     LDY #EXTNO   ;all extent of the file
+           LDA #0
+           STA (FCB),Y
+           JSR AFCB10   ;See if new file name
+           JSR OPEN     ;Already exist?
+           BCS RNRTS
+           BEQ FLEXER
+           JSR MFCB10
+           JSR OPEN     ;See if org file exists or not
+           BCS RNRTS
+           BNE GONNMERR
+           LDY #PROT    ;File write protected?
+           LDA (DIRPT),Y
+           BMI WRPTER   ;Branch if yes
+RN1        JSR AFCB10   ;Move new filename te replace old
+           LDY #10
+           JSR WD1
+           JSR MFCB10
+           JSR OPN2     ;Change all extents
+           BCS RNRTS
+           BEQ RN1
+GOOFF      JMP OFF
+ 
+GONNMERR   JMP NNMERR
+ 
+TSP.DIR1   JSR STIFLG
+           BIT UFLAGS
+           BVS DIR.FM1
+SP.DIR1    JSR SETPARMS
+           BCS MFRTS
+DIR.FM1    LDA #0       ;Directory listing subroutine
+           TAY          ; to list all files
+           JSR TSTY2A
+           BCC DIR7
+TSP.DIR2   JSR STIFLG
+           BIT UFLAGS
+           BVS DIR.FM2
+SP.DIR2    JSR SETPARMS
+           BCS MFRTS
+DIR.FM2    JSR SCAN     ;Directory listing subroutine
+DIR7       LDY #0       ; to list selected files
+           STY *TEMP1
+           JSR OPEN
+           JMP DIR3
+DIR2       LDY #SYS     ;Test for system function
+           LDA (DIRPT),Y
+           BMI DNXT     ;If function bit set, skip listing
+           DEC *TEMP1
+           BPL DIR1.5
+           LDA DIR/LIN
+           AND #$7F
+           STA *TEMP1   ;Setup counter for dir/line
+           JSR CRLF
+DIR1.5     LDY #NAMBUF
+DIR1       LDA (DIRPT),Y
+           AND #$7F
+           JSR OUTCHR
+           INY
+           CPY #11      ;Output 11 chars of filename
+           BCC DIR1
+           JSR SPACE    ;Then output space & addr
+           BIT DIR/LIN
+           BPL DIR5
+           INY
+           JSR OUTADDRS
+           LDA #'-
+           JSR OUTCHR
+           JSR OUTADDRS
+           JSR SPACE
+DIR5       LDA #':
+           JSR OUTCHR
+DNXT       JSR OPN2
+DIR3       BCS DIRRTS
+           BEQ DIR2
+           BCC GOOFF
+OUTADDRS   LDA (DIRPT),Y
+           JSR OUTBYT
+           INY
+           LDA (DIRPT),Y
+           JSR OUTBYT
+           INY
+DIRRTS     RTS
+ 
+GETDTA     JSR CRLF     ;Subroutine to get input data
+GETDTA1    JSR SETPTRS
+GETDTA2    JSR GETNAM
+           BCS GDRTS
+           JSR PARM
+           BNE BUFERR
+           CLC
+           LDA PARNR
+GDRTS      RTS
+ 
+GETNAM     LDY #$FF     ;Subroutine to get
+           LDX #0       ; filename fron input
+ASCLP      JSR INCHR
+           CMP #8       ;Backspace?
+           BEQ BAKSP1
+           CMP #$7F     ;Delete char?
+           BEQ BAKSP
+           CMP #'_      ;Backarrow?
+           BEQ BAKSP1
+           JSR WRTFCB
+           BCS BUFERR
+           BEQ ASCLP
+           RTS
+ 
+BAKSP      LDA #'_
+           JSR OUTCHR
+BAKSP1     DEY
+           DEX
+           BPL ASCLP
+BUFERR     LDA #$50
+BE1        SEC
+BE2        RTS
+ 
+WRTFCB     JSR DELIMITERS
+           BEQ GOTNAM
+           CMP #' 
+           BCC BE1
+           CMP #'.
+           BNE GN1
+           INY
+           CPY #9
+           BCS BE2
+           DEY
+           JSR GOTNAM
+           LDY #7
+           LDX #0
+           RTS
+GN1        INY
+           INX
+           STA (FCB),Y
+           CPY #11
+           LDA #0
+           RTS
+ 
+GOTNAM     LDA #' 
+TSTY2      INY
+TSTY2A     CPY #EXTNO
+           STA (FCB),Y
+           BCC TSTY2
+           LDA #1       ;Set extent no. to 1
+           STA (FCB),Y
+           CLC
+           RTS
+ 
+SCAN       LDY #$FF     ;Change * and ? to
+           ;appropriate char in filename
+SC3        INY
+           CPY #11
+           BCS SC1
+SC4        LDA (FCB),Y
+           CMP #'?
+           BNE SC2
+           LDA #0
+           STA (FCB),Y
+SC2        CMP #'*
+           BNE SC3
+           LDA #0
+SC5        STA (FCB),Y
+           INY
+           CPY #8
+           BEQ SC4
+           CPY #11
+           BNE SC5
+SC1        RTS
+ 
+CHKIV      LDY #10      ;Check for invalid chars:
+CI1        LDA (FCB),Y  ;i.e. * and ? in filename
+           CMP #'?
+           BEQ CI2
+           CMP #'*
+           BEQ CI2
+           DEY
+           BPL CI1
+           CLC
+CI2        RTS
+ 
+USET       LSR A        ;Set option bits
+           STA UFLAGS
+           LDA #0
+           ROL A
+           STA IDISK
+           RTS
+           .CT FIO3)).RAE 0

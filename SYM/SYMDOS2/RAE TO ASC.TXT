@@ -1,0 +1,72 @@
+; 22:08:00  WEDNESDAY  27th June,1984
+;*********************************************
+;*               RAE>ASC V1.0                *
+;*     for SYM with FDC-1 and SYMDOS2        *
+;*                                           *
+;*********************************************
+;
+;  This program is to change a RAE file to a ASCII
+;file. The procedure is:
+;1) Load a text file into RAE text buffer
+;2) Run RAE>ASC
+;3) Save the file by the ENter command
+;
+;example
+;>LO RAE>ASC.RAE 0
+;>AS
+;>RU RAE>ASC
+;>EN RAE>ASC.ASC 0
+;
+           .BA $200
+           .OS
+TPRES      .DE $D3
+TXTPTR     .DE $FC
+ASCPTR     .DE $FE
+TXST       .DE $100
+RAE>ASC    LDA TXST
+           STA *TXTPTR
+           STA *ASCPTR
+           LDA TXST+1
+           STA *TXTPTR+1
+           STA *ASCPTR+1
+           LDA #1
+           BNE RA2.5
+RA1        TYA
+           CLC
+           ADC *ASCPTR
+           STA *ASCPTR
+           BCC RA2
+           INC *ASCPTR+1
+RA2        TYA
+RA2.5      SEC
+           ADC *TXTPTR
+           STA *TXTPTR
+           LDY #0
+           BCC RA3
+           INC *TXTPTR+1
+RA3        LDA (TXTPTR),Y
+           TAX
+           AND #$7F
+           STA (ASCPTR),Y
+           INY
+           TXA
+           BEQ RAEND
+           BPL RA3
+           LDA #$0D
+           STA (ASCPTR),Y
+           INY
+           BNE RA1
+RAEND      TYA
+           CLC
+           ADC *ASCPTR
+           LDX *ASCPTR+1
+           BCC RAE1
+           INX
+RAE1       SEC
+           SBC #3
+           STA *TPRES
+           BCS RAE2
+           DEX
+RAE2       STX *TPRES+1
+           RTS
+           .EN

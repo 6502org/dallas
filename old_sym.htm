@@ -1,0 +1,175 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>Old SYM</title>
+</head>
+
+<body>
+
+<p><b><!--webbot bot="HitCounter" u-custom i-digits="0"
+i-image="4" PREVIEW="&lt;strong&gt;[Hit Counter]&lt;/strong&gt;"
+i-resetvalue="0" startspan --><img src="_vti_bin/fpcount.exe/C:/My%20Documents/MyDoc_1/My%20Webs/?Page=old_sym.htm|Image=4" alt="Hit Counter"><!--webbot bot="HitCounter" endspan i-checksum="55198" -->
+</b> </p>
+
+<p><b>Here is the evolution of my first SYM-1 from out of the factory box
+through several add-ons</b> <b>winding up with a dual floppy disk system and 32k
+RAM</b></p>
+<p><b>Questions?&nbsp; email n5fee@netzero.net</b></p>
+<p><b>The standard SYM shipped with 2k RAM and one 6522 VIA with the MON
+1.1.&nbsp; The other items were sold as options and priced accordingly.&nbsp; Everything
+was&nbsp; expensive in 1978 so I ordered the minimum for $239 plus
+shipping.&nbsp; After reading all of the books and beginning write a few short
+programs (all had assembled and keyed in thru the onboard keypad) I ordered 3k
+more of RAM to fill up the board.&nbsp; Shortly after adding the ram I ordered a
+second 6522 to fill up the onboard I/O.&nbsp;&nbsp;</b></p>
+<p><b>Shortly after learning a little about the board, I added the DB-25
+connector and made up connections to allow me to use a RS232 terminal and an ASR
+33 teletype I had a work (I was an engineer at Rockwell International).&nbsp;
+Having the teletype allowed paper tape to be punched for storing and loading
+programs without having to re-key the code each time.&nbsp; The teletype also provided
+for a printout.&nbsp; Remember the MX-80 (80 characters per second) printer was
+new then and cost several hundred dollars (minimum wage was about $3.00/hr). and
+was out of the reach of individuals.&nbsp; Dumb RS232 terminals were also
+several hundred dollars and usually only available at industries.</b></p>
+<p><b>I could see the SYM keyboard was not too strong, so I mounted the keypad
+on a piece of 1/4 inch thick Plexiglas.&nbsp; I sandwiched the SYM in-between
+two pieces of Plexiglas with the keyboard and DB25 connector mounted to the
+Plexiglas for mechanical strength.</b></p>
+<p><b>The following two photos show the setup.</b></p>
+<p><img border="0" src="SYM/Early%20Sym/HD600098.JPG" width="640" height="480"></p>
+<p>&nbsp;</p>
+<p><b>After several months I began to write longer programs and needed more
+memory so my next addition was a 4k expansion memory board.&nbsp; This board
+plugged into the buss connector and used 2114 RAM's just like the SYM
+used.&nbsp; Sometime after adding the 4k (eight chips) I piggybacked eight more
+on top of the first row to give a total of 8k memory expansion.&nbsp; Here is a
+photo of the 8k expansion module.&nbsp; Notice each chip has one on its back
+will all pins parallel except the chip select pin which is slightly bent out and
+has a separate wire wrapped on it.&nbsp; By doing this same trick on the main
+board, you could have 8k on the main board.&nbsp; I did this as well, so 8k on
+the main board and 8k on this expansion gave you 16k, a huge amount of memory.</b></p>
+<p><img border="0" src="SYM/Early%20Sym/HD600117.JPG" width="640" height="480"></p>
+<p>&nbsp;</p>
+<p><b>While learning to do I/O, I got tired of getting the voltmeter out and
+trying to see which pins had changed state.&nbsp; I designed and built this
+board that monitored the logic status of one VIA and would light up the LED's to
+show the status of each line.&nbsp; I made this one to go on the A connector, so
+I made a place to plug in my teletype on one side (left side below) and my RS232
+terminal on the other side.&nbsp; I also made connections for my tape recorder
+which was used to store programs on.&nbsp; This is a feed thru device and world
+allow the VIA signal to be monitored while it was controlling something else.</b></p>
+<p>&nbsp;</p>
+<p><b>Several years later, I bought another SYM that came with this board which
+is similar to the one I just described.&nbsp;&nbsp; It allows one half of a PIA
+to be monitored as an output and provides switches to be used as inputs.</b></p>
+<p><img border="0" src="SYM/Early%20Sym/HD600118.JPG" width="640" height="480"></p>
+<p>&nbsp;</p>
+<p><b>This is the power supply I built up to power the SYM.&nbsp; It is just a
+full wave bridge with a 7805 single terminal regulator for the 5volts.&nbsp; I
+later added two LM723 low current regulators to provide 27&nbsp; volts for
+burning 2708 EPROM's and later 25 volts to be used while burning later model
+EPROMs.</b></p>
+<p><img border="0" src="SYM/Early%20Sym/HD600112.JPG" width="640" height="480"></p>
+<p>&nbsp;</p>
+<p><b>Here is the First EPROM programmer I made.&nbsp; It was for 2708
+chips.&nbsp; It plugged into the AA connector.</b></p>
+<p><img border="0" src="SYM/Early%20Sym/HD600116.JPG" width="640" height="480"></p>
+<p>&nbsp;</p>
+<p><b>About this time I needed more serial I/O and was interested in having a
+real time clock so I made up the next addition.&nbsp; This board has an ICL7170
+real time clock chip and a Rockwell Serial I/O chip.&nbsp; This gave me the
+extra RS232 port to print program listings on a newly acquired Epson MX-80
+printer which the company bought.&nbsp; I could use the RTC to time and date
+stamp the printouts.&nbsp; This add-on board was plugged into a small back plane
+of several 44 pin edge connectors that I salvaged from some junk equipment.&nbsp;
+I just plugged them in and let the board lay on top of the Plexiglas cover I had
+added earlier.</b></p>
+<p><img border="0" src="SYM/Early%20Sym/HD600108.JPG" width="640" height="480"></p>
+<p><img border="0" src="SYM/Early%20Sym/HD600110.JPG" width="640" height="480"></p>
+<p>&nbsp;</p>
+<p><b>I then bought another SYM that had the RAE chips so now I could quit hand
+assembling my programs and use a real assembler.&nbsp; But I soon discovered I
+needed more memory.&nbsp; So I bought a commercial 32k memory board from John
+Bell Company.&nbsp; This board would take 2k chips either RAM or EPROM and was a
+Cadillac in its time.&nbsp; I used the brand new 2k Battery backed up ram chip
+from MOSTEK in one of the sockets, so I could load my printer and RTC drivers in
+high RAM and leave them there without having to re-load them every
+time.&nbsp;&nbsp; It worked great.&nbsp; Here is the RAM board.</b></p>
+<p><img border="0" src="SYM/Early%20Sym/HD600106.JPG" width="640" height="480"></p>
+<p><img border="0" src="SYM/Early%20Sym/HD600103.JPG" width="640" height="480"></p>
+<p>&nbsp;</p>
+<p><b>By this time several people were working on Disk Operating Systems for the
+SYM.&nbsp; I bought one of the least expensive systems that used a Commodore
+1541 disk drive.&nbsp; Using a very simple interface and an off of the shelf
+VIC-20 disk drive with the DOS software gave me a simple DOS that would let me
+retire the old cassette tape deck.&nbsp;&nbsp;</b></p>
+<p><b>I used this DOS for several months while I built up an interface to use a
+DOS that I had gotten from a member of the SYM-Physis group who lived in Hong
+Kong.&nbsp; He had written a very robust DOS that&nbsp; worked thru a standard
+FDC chip at the time.&nbsp; The WD1793 single chip disk controller was being
+used by a lot of the early disk drives and I wanted to have a disk system based
+on the industry standard disk format.&nbsp; I obtained a spare disk controller
+from a Radio Shack TRS-80.&nbsp; After studying the drawings I made several
+dozen changes to the TRS 80 board and made it work with the DOS from Hong Kong.</b>&nbsp;
+<b>This is a very good DOS and I later made up a new interface circuit from
+scratch using the WD 2793 interface chip.&nbsp; This later system is shown on
+another area of my web site.</b></p>
+<p>&nbsp;</p>
+<p><b>Here is the Disk System using the TRS 80 controller.</b></p>
+<p><img border="0" src="SYM/Early%20Sym/HD600094.JPG" width="640" height="480"></p>
+<p><img border="0" src="SYM/Early%20Sym/HD600095.JPG" width="640" height="480"></p>
+<p><img border="0" src="SYM/Early%20Sym/HD600096.JPG" width="640" height="480"></p>
+<p>&nbsp;</p>
+<p><b>The electronics was housed in an aluminum chassis below the SYM.&nbsp; The
+Back plane carried the signals from the SYM into the box below.&nbsp; The SYM
+was attached to the box by three small 4-40 screws threaded into the Plexiglas
+from inside the box.&nbsp;</b></p>
+<p><img border="0" src="SYM/Early%20Sym/HD600100.JPG" width="640" height="480"></p>
+<p>&nbsp;</p>
+<p><b>The modified TRS 80 controller card is shown on the right side
+below.&nbsp; The left side has two cards stacked on top of each other, each
+plugged into the back plane buss.&nbsp; The top card shown is the 32k RAM
+card.&nbsp; Below this RAM card is the card with the RS233 chip and RTC
+described above.&nbsp; The buss signals were ran from this card thru the ribbon
+cable to the TRS 80 controller card shown below.&nbsp; The disk drives
+themselves were plugged onto the TRS 80 card using an edge connector (not shown
+in this photo) exiting the top right corner of this photo.&nbsp;</b></p>
+<p><img border="0" src="SYM/Early%20Sym/HD600101.JPG" width="640" height="480"></p>
+<p><img border="0" src="SYM/Early%20Sym/HD600102.JPG" width="640" height="480"></p>
+<p>&nbsp;</p>
+<p><b>Here you can see the edge connector that the disk drive box plugs
+into.&nbsp; The RAM board has been removed to show the RS232 and RTC board on
+the left plugged into the back plane buss.</b></p>
+<p><img border="0" src="SYM/Early%20Sym/HD600107.JPG" width="640" height="480"></p>
+<p>&nbsp;</p>
+<p><b>Shown below is a couple of small single board computers I made up to use
+in some custom equipment I designed.&nbsp; These small boards have a 6502, 6532
+and a 2732 Eprom.&nbsp; This makes a complete computer with two eight bit
+ports.&nbsp; Power comes in, and the port signals go out the header connector on
+the right hand side.</b></p>
+<p><img border="0" src="SYM/Early%20Sym/HD600113.JPG" width="640" height="480"></p>
+<p>&nbsp;</p>
+<p><b>Here is another board with a 12 bit A-D and some other I/O that is
+controlled by the single board computer above.&nbsp; In actual use, the computer
+board would connect to the larger board by the ribbon cable.&nbsp; Here is shown
+an adapter cable that plugs into the SYM.&nbsp; Using this scheme, the programs
+are written and debugged while under control of the SYM.&nbsp; When everything
+is working correctly, the code is re-assembled using the VIA address of the
+small single board computer above, and burned into an EPROM.&nbsp; Now when the
+single board computer starts, it runs the program that has already been
+de-bugged on the SYM.</b></p>
+<p><img border="0" src="SYM/Early%20Sym/HD600114.JPG" width="640" height="480"></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+
+</body>
+
+</html>

@@ -1,0 +1,592 @@
+; 20:00:00 THURSDAY JUN 7 1984
+ 
+;//////////////////////////////
+;/ DISK DRIVE INTERFACE (DDI) /
+;/ VERSION II BY Kin-ping Kwok/
+;/ Copyright on Aug,83        /
+;/ (part 2 of 2 of SYMDOS2)   /
+;//////////////////////////////
+ 
+; FDC PAGE ZERO
+ 
+RETRIES    .DE $EB
+WKAREA     .DE $FE
+BUFPTR     .DE $FE
+ 
+; SUPERMON ROUTINES
+ 
+IRQBRK     .DE $800F
+SAVER      .DE $8188
+RESALL     .DE $81C4
+ACCESS     .DE $8B86
+ 
+; SYSTEM RAM
+ 
+SCPBFR     .DE $A600
+ 
+           .BA SCPBFR
+ 
+IDRIVE     .DS 1
+ITRACK     .DS 1
+ISECTR     .DS 1
+IADDRS     .DS 2
+IFLAGS     .DS 1
+DFLAGS     .DS 1
+CURTRK     .DS 1
+NOSECS     .DS 1
+PARMS      .DS 7        ;7 PARM. READ FROM DISK
+DRASAV     .DS 1
+STEPRT     .DS 1
+FFLAGS     .DS 1
+DLYTM      .DS 1
+NOTRKS     .DS 1
+RDADBUF    .DS 3
+CURSCL     .DS 3
+ 
+IRQVEC     .DE $A67E
+ 
+STAREG     .DE $F000    ;Change these to
+CMDREG     .DE $F000    ;$AEXX and $AF00
+TRKREG     .DE $F001    ;if your I/O has
+SECREG     .DE $F002    ;been relocated
+DATREG     .DE $F003    ;there.
+IOREG      .DE $F100
+ 
+IDMARK     .DE $4B
+ 
+C.RESTORE  .DE %00001000
+C.SEEK     .DE %00011000
+C.READSEC  .DE %10000010
+C.WRITSEC  .DE %10100010
+C.RDADDRS  .DE %11000000
+C.CLEARI   .DE %11010000
+C.FORCE1   .DE %11011000
+C.WRITTRK  .DE %11110000
+ 
+TYP1MA     .DE %10011000
+RAERMA     .DE %10011100
+RDERMA     .DE %10011100
+WRERMA     .DE %11011100
+ 
+DENSEL     .DE $80
+HLTSEL     .DE $10
+SIDSEL     .DE $08
+MTRSEL     .DE $04
+ 
+VERFLG     .DE $20
+DENFLG     .DE $80
+DDIFLG     .DE $40
+AVAIL      .DE $20
+ 
+           .BA $9A00
+ 
+DISKIO     JMP DISKIO@
+ 
+DESELECT   LDA IDRIVE
+           LSR A
+           LDA FFLAGS
+           AND #$FF-DDIFLG
+           STA FFLAGS
+           PHP
+           LDA #0
+           PLP
+           BPL DESEL.1
+           BIT IFLAGS
+           BPL DESEL.2
+           LDA #MTRSEL
+DESEL.1    BIT IFLAGS
+DESEL.2    BVC UPDDRA
+           ORA #HLTSEL+MTRSEL
+           ADC #1
+UPDDRA     STA DRASAV
+           EOR #$FF
+           STA IOREG
+           CLC
+           RTS
+ 
+DISKIO@    JSR ACCESS
+           JSR SAVER
+           CMP #1       ;command value is 0 to 8
+           BCC DINIT
+           BEQ DI4
+           CMP #9
+           BCC DI1
+           LDA #$36     ;no this command error
+           BCS EXIT
+DI1        PHA
+           LDA DFLAGS
+           AND #AVAIL   ;test for availability
+           BNE DI2      ;if not known
+           LDA #1       ;try to find out
+           JSR DI3
+           BCC DI2
+           TSX
+           INX
+           TXS
+           BCS EXIT     ;error exit
+DI2        PLA
+DI4        JSR DI3      ;execute the command
+EXIT       PHP
+           PHA
+           JSR DESELECT
+           PLA
+           TSX
+           STA $104,X
+           PLP
+           LDA $105,X
+           AND #$FE
+           CLD
+           ADC #0
+           JMP RESALL-4
+ 
+DI3        ASL A        ;indirect jump
+           TAX
+           LDA CMDTBL-1,X
+           PHA
+           LDA CMDTBL-2,X
+           PHA
+JUSTRTS    RTS
+ 
+DINIT      LDA #0       ;initialize
+           JSR UPDDRA
+           JSR DRIVESIZE
+           LDA #H,IRQRTN
+           STA IRQVEC+1
+           LDA #L,IRQRTN
+           STA IRQVEC
+           JMP RESALL
+ 
+DRIVESIZE  JSR CL1791   ;find the size of the disk drive
+           LDA #MTRSEL
+           JSR UPDDRA
+           LDX #3
+           BIT STAREG
+           BMI DS1
+           LDX #$07
+DS1        LDY #4
+DS2        LDA DRVSZDT,X
+           STA STEPRT-1,Y
+           DEX
+           DEY
+           BNE DS2
+           TYA
+           JMP UPDDRA
+ 
+SELECT     LDA IDRIVE   ;select drive
+           LSR A
+           LDX DRASAV
+           LDA DFLAGS
+           AND #DENFLG
+           EOR #DENFLG
+           BIT FFLAGS
+           BPL SEL1
+           PHA
+           LDA STAREG
+           BMI SEL0
+           TXA
+           ORA #MTRSEL
+           TAX
+SEL0       PLA
+           ORA #MTRSEL
+SEL1       ADC #1
+           BIT ITRACK   ;test for side
+           BPL SEL2     ;branch if side 0
+           ORA #SIDSEL  ;set side 1 bit
+SEL2       JSR UPDDRA
+           TXA
+           BIT FFLAGS
+           BPL SEL3
+           AND #MTRSEL
+           BNE SEL2.5
+           JSR MTRST    ;start motor
+           BCC SEL4
+           RTS
+SEL2.5     TXA
+SEL3       EOR DRASAV   ;test for drive change
+           AND #$03
+           BEQ SEL4
+           BIT FFLAGS
+           BPL SEL35
+           LDA FFLAGS
+           AND #$02
+           BEQ SEL5
+           JSR MTRST
+           BCC SEL4
+           RTS
+SEL35      LDX DLYTM
+           JSR DELAY
+SEL5       JSR INDEX    ;CHECK READY FOR 8", INDEX FOR 5"
+           BCS SELRTS
+SEL4       LDA #HLTSEL
+           ORA DRASAV
+           JSR UPDDRA
+           LDA FFLAGS
+           ORA #DDIFLG
+           STA FFLAGS
+           CLC
+SELRTS     RTS
+ 
+INDEX      JSR CL1791   ;check for index of diskette
+           BMI ER31
+           BIT FFLAGS
+           BPL MS2
+           LDX #$40
+IXTMCT     LDY #$EB
+IXTC1      LDA STAREG
+           LSR A
+           LSR A
+           NOP
+           BCS IXTC3
+           DEY
+           BNE IXTC1
+           DEX
+           BNE IXTMCT
+           BEQ IXTC2
+IXTC4      LDA STAREG
+           LSR A
+           LSR A
+           NOP
+           BCC IXTC5
+IXTC3      DEY
+           BNE IXTC4
+           DEX
+           BEQ IXTC2
+           LDY #$EA
+           BNE IXTC4
+IXTC2      SEC
+IXTC5      RTS
+ 
+MTRST      JSR CL1791
+           BMI ER31
+           LDA #2
+           STA *WKAREA
+           LDX DLYTM
+MS1        JSR IXTMCT   ;check for index
+           BCS ER31     ;  and speed
+           DEC *WKAREA
+           BNE MS1
+MS2        TXA
+           PHA
+           JSR IXTMCT   ;check for index
+           BCS MS3      ;  and speed
+           STX *WKAREA
+           PLA
+           SBC *WKAREA
+           CMP #48      ;49 C=0 IN SBC
+           BCC MS2
+           CMP #50      ;51 C=0 IN SBC
+           BCS MS2
+           RTS : if speed is within {4%,okay return
+MS3        PLA
+           CLC
+           RTS
+ 
+ER31       LDA #$31     ;not available error
+           SEC
+           RTS
+ 
+IRQRTN     PHP
+           BIT FFLAGS
+           BVC IR1
+           PLP
+           PLA
+           PLA
+           PLA
+IRQRTN1    LDA RTNADR+1,X :jump require routine after IRQ
+           PHA
+           LDA RTNADR,X
+           PHA
+           LDA STAREG
+           RTS
+IR1        PLP
+           JMP IRQBRK
+ 
+RDADDR     LDA #4       ;read address mark
+           STA *RETRIES
+RDAD1      LDX #0
+           LDA #C.RDADDRS
+           CLV
+           CLI
+           LDY #0
+           STA CMDREG
+RALOOP     BVC RALOOP
+           LDA DATREG
+           STA RDADBUF,Y
+           CLV
+           INY
+           BNE RALOOP
+RDADIRQ    AND #RAERMA  ;execute after reading addr. mark
+           BEQ RAI1
+           JSR RECOVER
+           BCS RARTS
+           LDA DRASAV
+           EOR #DENSEL
+           JSR UPDDRA
+           BCC RDAD1
+RAI1       LDA DRASAV
+           EOR #$80
+           AND #$80
+           ORA #AVAIL
+           ORA CURSCL
+           STA DFLAGS
+           CLC
+RARTS      RTS
+ 
+SEEK       JSR SELECT   ;seek track
+           BCS SKRTS
+SEEK1      LDA #3
+           STA *RETRIES
+           LDA CURTRK
+SK2        STA TRKREG
+           TAX
+           LDA IFLAGS
+           AND #VERFLG
+           BNE SK2.5
+           TXA
+           EOR ITRACK
+           ASL A
+           BEQ SKCCRTS
+SK2.5      LDA ITRACK
+           AND #$7F
+           CMP NOTRKS
+           BCC SK3
+           LDA #$34
+           RTS
+SK3        STA DATREG
+           STA CURTRK
+           LDA IFLAGS
+           AND #VERFLG
+           LSR A
+           LSR A
+           LSR A
+           ORA #C.SEEK
+           LDX #4
+TYP1CMD    LDY #0
+SKDLY      INY
+           BNE SKDLY
+           ORA STEPRT
+           CLI
+           STA CMDREG
+TYP1WA     BNE TYP1WA
+SKIRQ      AND #TYP1MA  ;execute after seek
+           BNE SKRCV
+SKCCRTS    CLC
+SKRTS      RTS
+SKRCV      BMI T1ER1
+           DEC *RETRIES
+           BMI T1ER3
+           JSR RESTOR1
+           BCS SKRTS
+           LDA #0
+           BEQ SK2
+RESTOR     JSR SELECT :restore drive
+           BCS RESRTS
+RESTOR1    LDX #2
+           LDA #C.RESTORE
+           BNE TYP1CMD
+RESIRQ     AND #TYP1MA
+           BNE TYP1ERR
+           STA CURTRK
+           CLC
+RESRTS     RTS
+TYP1ERR    BMI T1ER1
+T1ER3      AND #$08
+           BNE T1ER2
+           LDA #$3A
+           .BY $2C
+T1ER2      LDA #$3E
+           .BY $2C
+T1ER1      LDA #$3F
+           SEC
+           RTS
+ 
+RECOVER    BMI T1ER1    ;try to recover from error
+           DEC *RETRIES
+           BPL RCV1
+           ASL A
+           BMI RCV2
+           ASL A
+           ASL A
+           BMI RCV3
+           ASL A
+           BMI T1ER2
+           LDA #$3D
+           .BY $2C
+RCV3       LDA #$39
+           .BY $2C
+RCV2       LDA #$3B
+           SEC
+RCV5       RTS
+RCV1       LDA *RETRIES
+           LSR A
+           BCS RCV6
+           JSR RESTOR1
+           BCS RCV5
+           LDA *RETRIES
+           PHA
+           JSR SEEK1
+           PLA
+           STA *RETRIES
+RCV6       CLC
+           RTS
+ 
+STS.RES    LDA #0
+           STA DFLAGS
+           JSR RESTOR
+           BCS SRRTS
+           JSR RDADDR
+           BCS SRRTS
+           AND #$83
+           TAY
+           LDA FFLAGS
+           ASL A
+           TYA
+           ROL A
+           ROL A
+           TAY
+           LDA SECTBL,Y
+           BEQ SR1
+           STA NOSECS
+SRRTS      RTS
+SR1        LDA #$40
+           SEC
+           RTS
+ 
+READ       JSR SEEK     ;read sector
+           BCS RDRTS
+           LDA #4
+           STA *RETRIES
+READ1      JSR RDWR
+           ORA #C.READSEC
+           LDX #6
+           STA CMDREG
+RDLOOP     BVC RDLOOP
+           LDA DATREG
+           CLV
+           STA (BUFPTR),Y
+           INY
+           BNE RDLOOP
+           INC *BUFPTR+1
+           BVC RDLOOP
+RDIRQ      AND #RDERMA  ;execute after read sector
+           CLC
+           BEQ RDRTS
+           JSR RECOVER
+           BCC READ1
+RDRTS      RTS
+ 
+WRITE      JSR SEEK     ;write sector
+           BCS WRRTS
+           LDA #4
+           STA *RETRIES
+WRITE1     JSR RDWR
+           ORA #C.WRITSEC
+           LDX #8
+           STA CMDREG
+WRLOOP     BVC WRLOOP
+           LDA (BUFPTR),Y
+           STA DATREG
+           CLV
+           INY
+           BNE WRLOOP
+           INC *BUFPTR+1
+           BVC WRLOOP
+WRIRQ      AND #WRERMA  ;execute after write sector
+           CLC
+           BEQ WRRTS
+           JSR RECOVER
+           BCC WRITE1
+WRRTS      RTS
+ 
+RDSEVEN    JSR SEEK     ;read first seven byte
+           BCS RSRTS    ;  of a sector
+           LDA #4       ;  if 1st byte is IDMARK
+           STA *RETRIES
+RDSEVEN1   JSR RDWR
+           ORA #C.READSEC
+           LDX #10
+           STA CMDREG
+RSLOOP     BVC RSLOOP
+           LDA DATREG
+           CLV
+           CMP #IDMARK
+           BNE RSLP3
+RSLP2      BVC RSLP2
+           LDA DATREG
+           CLV
+           STA PARMS,Y
+           INY
+           CPY #7
+           BCC RSLP2
+RSLP3      BVC RSLP3
+           LDA DATREG
+           CLV
+           BVC RSLP3
+RSIRQ      AND #RDERMA
+           CLC
+           BEQ RSRTS
+           JSR RECOVER
+           BCC RDSEVEN1
+RSRTS      RTS
+ 
+RDWR       LDA ISECTR
+           STA SECREG
+           LDA IADDRS
+           STA *BUFPTR
+           LDA IADDRS+1
+           STA *BUFPTR+1
+           LDY #0
+           CLV
+           CLI
+           LDA DRASAV
+           AND #SIDSEL
+           RTS
+ 
+CL1791     SEI  ;reset 1791 after error
+           LDA #C.FORCE1 :  or before some operation
+           STA CMDREG
+           LDY #$0
+CL1791.1   DEY
+           BMI CL1791.1
+           LDA #C.CLEARI
+           STA CMDREG
+CL1791.2   DEY
+           BPL CL1791.2
+           LDA STAREG
+           RTS
+ 
+DELAY      LDY #$DD     ;delay routine
+DLY1       NOP
+           NOP
+           DEY
+           BNE DLY1
+           DEX
+           BNE DELAY
+           RTS
+ 
+CMDTBL     .SI STS.RES-1        ;addr. of indirect jump
+           .SI RESTOR-1         ;  commands
+           .SI SEEK-1
+           .SI READ-1
+           .SI WRITE-1
+           .SI RDADBUF-1
+           .SI JUSTRTS-1
+           .SI RDSEVEN-1
+ 
+RTNADR     .SI RDADIRQ-1        ;address of routine to
+           .SI RESIRQ-1         ;  execute after IRQ
+           .SI SKIRQ-1
+           .SI RDIRQ-1
+           .SI WRIRQ-1
+           .SI RSIRQ-1
+           .SI RDADBUF+3-1
+ 
+DRVSZDT    .BY 02 00 17 77 ;defaults for 8" drive
+           .BY 03 $80 $FA 35 ;defaults for 5" drive
+ 
+SECTBL     .BY 26 00 18 30 ;128/SEC
+           .BY 15 00 10 18 ;256/SEC
+           .BY 08 00 05 09 ;512/SEC
+           .BY 04 00 02 05 ;1024/SEC
+ 
+           .EN

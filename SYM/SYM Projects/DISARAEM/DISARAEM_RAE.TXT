@@ -1,0 +1,504 @@
+ 0030             .BA $7B00
+ 0050             .ES
+ 0090  STEP       .DE $5
+ 0100  PGM.PTR    .DE $D3
+ 0110  LBL.PTR    .DE $D5
+ 0120  PARTIAL    .DE $E5 
+ 0130  PTR.STRT   .DE $E6 
+ 0140  RUN.NU     .DE $E8
+ 0150  END        .DE $E9 
+ 0160  FORMAT     .DE $EB
+ 0170  LENGTH     .DE $EC
+ 0180  LMNEM      .DE $ED
+ 0190  RMNEM      .DE $EE
+ 0200  YSAVE      .DE $EF
+ 0210  PCL        .DE $F0
+ 0220  PCH        .DE $F1
+ 0230  LBL.IDX    .DE $F2
+ 0240  TEMP       .DE $F4
+ 0250  INVALID    .DE $F5
+ 0260  LINE.NU    .DE $F6
+ 0270  TXT.LOW    .DE $100
+ 0280  LBL.LOW    .DE $104
+ 0290  ;
+ 0300  ;
+ 0310  ;
+ 0320  INBYTE     .DE $81D9
+ 0330  NIBASC     .DE $8309
+ 0340  INCHR      .DE $8A1B
+ 0350  ACCESS     .DE $8B86
+ 0360  TECHO      .DE $A653
+ 0370  OUTVEC     .DE $A663
+ 0380  RAE.WARM   .DE $B003
+ 0390  ;
+ 0400  ; MACRO DEF'NS
+ 0410  ;
+ 0420  !!!SZ      .MD (ADR.1 ADR.2)
+ 0430             LDA *ADR.1
+ 0440             STA *ADR.2
+ 0450             LDA *ADR.1+1
+ 0460             STA *ADR.2+1
+ 0470             .ME
+ 0490  !!!SA      .MD (ADR.1 ADR.2)
+ 0500             LDA ADR.1
+ 0510             STA *ADR.2
+ 0520             LDA ADR.1+1
+ 0530             STA *ADR.2+1
+ 0540             .ME
+ 0560  ; GET START AND END ADDR
+ 0620             LDX #$12
+ 0630  MOVE1      LDA *$E5,X
+ 0640             STA Z.STORE+1,X
+ 0650             DEX
+ 0660             BPL MOVE1
+ 0680             INX
+ 0690             STX *PARTIAL
+ 0690             JSR TOGGLE
+ 0690             LDA #0
+ 0690             STA *RUN.NU
+ 0690             STA *INVALID
+ 0700  MSG3       LDA MESS3,X
+ 0710             BEQ FIN.3
+ 0720             JSR OUTVEC
+ 0730             INX
+ 0740             BNE MSG3
+ 0750  FIN.3      JSR INCHR
+ 0760             CMP #'D
+ 0770             BEQ CONT
+ 0780             CMP #'L
+ 0790             BNE GO.RAE
+ 0800             LDY #$80
+ 0810             STY *PARTIAL
+ 0820             BNE CONT
+ 0840  GO.RAE     JMP RAE.RTN
+ 0860  PASS2      LDX #0
+ 0870  MSG.4      LDA MESS4,X
+ 0880             BEQ FIN.4
+ 0890             JSR OUTVEC
+ 0900             INX
+ 0910             BNE MSG.4
+ 0920  FIN.4      LDY #$40
+ 0930             STY *PARTIAL
+ 0950  CONT       LDX #0
+ 0960  MSG1       LDA MESS1,X
+ 0970             BEQ FIN.1
+ 0980             JSR OUTVEC
+ 0990             INX
+ 1000             BNE MSG1
+ 1010  FIN.1      JSR INBYTE
+ 1020             STA *PTR.STRT+1
+ 1030             JSR INBYTE
+ 1040             STA *PTR.STRT
+ 1050             LDX #0
+ 1060  MSG2       LDA MESS2,X
+ 1070             BEQ FIN.2
+ 1080             JSR OUTVEC
+ 1090             INX
+ 1100             BNE MSG2
+ 1110  FIN.2      JSR INBYTE
+ 1120             STA *END+1
+ 1130             JSR INBYTE
+ 1140             STA *END
+ 1160             BIT *PARTIAL
+ 1170             BVC PA.1
+ 1180             LDA #0
+ 1190             STA *PARTIAL
+ 1200             JMP PA.2
+ 1220  ; DIS PRGM
+ 1240  PA.1       SA (LBL.LOW PGM.PTR)
+ 1250             BNE DIS.AS
+ 1260  START      SA (TXT.LOW PGM.PTR)
+ 1270             LDA #$95
+ 1280             STA *LINE.NU
+ 1290             LDA #0
+ 1300             STA *INVALID
+ 1310             STA *LINE.NU+1
+ 1320             STA *TEMP
+ 1330  DIS.AS     SZ (PTR.STRT PCL)
+ 1340  DSMBL      JSR INST.DIS
+ 1350             JSR PCADJ
+ 1360             STA *PCL
+ 1370             STY *PCH
+ 1381             CPY *END+1
+ 1382             BCC DSMBL
+ 1383             BNE SET.RUN
+ 1384             LDA *END
+ 1385             CMP *PCL
+ 1386             BCS DSMBL
+ 1387  SET.RUN    BIT *RUN.NU
+ 1388             BMI FINISH
+ 1389  PA.2       SZ (PGM.PTR LBL.PTR)
+ 1470             LDA #$80
+ 1480             STA *RUN.NU
+ 1490             LDA *PARTIAL
+ 1500             BEQ START
+ 1510             JMP PASS2
+ 1530  FINISH     JSR ASC.STORE
+ 1540             LDA #0
+ 1550             JSR A.STORE
+ 1560  RAE.RTN    LDX #$12
+ 1570  MOVE2      LDA Z.STORE+1,X
+ 1580             STA *$E5,X
+ 1590             DEX
+ 1600             BPL MOVE2
+ 1610             JSR TOGGLE
+ 1620             JMP RAE.WARM
+ 1640  INST.DIS   BIT *RUN.NU
+ 1650             BPL OP.CODE
+ 1660  INC.LINE   CLC
+ 1670             SED
+ 1680             LDA *LINE.NU
+ 1690             ADC #STEP
+ 1700             STA *LINE.NU
+ 1710             JSR A.STORE
+ 1720             LDA *LINE.NU+1
+ 1730             BCC DIS.A
+ 1740             ADC #0
+ 1750  DIS.A      STA *LINE.NU+1
+ 1760             JSR A.STORE
+ 1770             CLD
+ 1780             LDA *TEMP
+ 1790             CMP #$60
+ 1800             BEQ COMMENT
+ 1810             CMP #$4C
+ 1820             BEQ COMMENT
+ 1830             CMP #$6C
+ 1840             BNE CK.LBL
+ 1850  COMMENT    LDA *INVALID
+ 1860             BNE CK.LBL
+ 1870             LDA #$BB
+ 1880             JSR A.STORE
+ 1890             STA *TEMP
+ 1900             BNE INC.LINE
+ 1910  CK.LBL     JSR LABEL
+ 1930             BCS NO.LBL
+ 1940             LDA #'L
+ 1950             JSR A.STORE
+ 1960             LDA *PCH
+ 1970             JSR ASC.STORE
+ 1980             LDA *PCL
+ 1990             JSR ASC.STORE
+ 2000             LDA #0
+ 2010             STA *INVALID
+ 2020  NO.LBL     LDA #$20
+ 2030             JSR A.STORE
+ 2040  OP.CODE    LDA *INVALID
+ 2050             BNE ERR
+ 2060             LDX #0
+ 2070             LDA (PCL,X)
+ 2080             TAY
+ 2090             LSR A
+ 2100             BCC IEVEN
+ 2110             LSR A
+ 2120             BCS ERR
+ 2130             CMP #$22
+ 2140             BEQ ERR
+ 2150             AND #$07
+ 2160             ORA #$80
+ 2170  IEVEN      LSR A
+ 2180             TAX
+ 2190             LDA MODE,X
+ 2200             BCS RTMODE
+ 2210             LSR A
+ 2220             LSR A
+ 2230             LSR A
+ 2240             LSR A
+ 2250  RTMODE     AND #$F
+ 2260             BNE GETFMT
+ 2270  ERR        LDY #$80
+ 2280             LDA #$0
+ 2290  GETFMT     TAX
+ 2300             LDA MODE2,X
+ 2310             STA *FORMAT
+ 2320             AND #$03
+ 2330             STA *LENGTH
+ 2340             TYA
+ 2350             AND #$8F
+ 2360             TAX
+ 2370             TYA
+ 2380             LDY #$03
+ 2390             CPX #$8A
+ 2400             BEQ MNNDX3
+ 2410  MNNDX1     LSR A
+ 2420             BCC MNNDX3
+ 2430             LSR A
+ 2440  MNNDX2     LSR A
+ 2450             ORA #$20
+ 2460             DEY
+ 2470             BNE MNNDX2
+ 2480             INY
+ 2490  MNNDX3     DEY
+ 2500             BNE MNNDX1
+ 2510             LDX #$03
+ 2520             TAY
+ 2530             LDA MNEML,Y
+ 2540             STA *LMNEM
+ 2550             LDA MNEMR,Y
+ 2560             STA *RMNEM
+ 2570             BIT *RUN.NU
+ 2580             BPL END.NMEM
+ 2590  PRMN1      LDA #$00
+ 2600             LDY #$05
+ 2610  PRMN2      ASL *RMNEM
+ 2620             ROL *LMNEM
+ 2630             ROL A
+ 2640             DEY
+ 2650             BNE PRMN2
+ 2660             ADC #$3F
+ 2670             CMP #$3F
+ 2680             BNE =+5
+ 2690             LDA #'.
+ 2700             STA *INVALID
+ 2710             JSR A.STORE
+ 2720             DEX
+ 2730             BNE PRMN1
+ 2750             LDA (PCL,X)
+ 2760             STA *TEMP
+ 2770             LDA #$20
+ 2780             JSR A.STORE
+ 2790             LDA *INVALID
+ 2820             BEQ CK.BIT
+ 2830             LDA #'$
+ 2840             JSR A.STORE
+ 2850             LDA (PCL,X)
+ 2860             PHA
+ 2870             JSR ASC.STORE
+ 2880             PLA
+ 2890             AND #$7F
+ 2900             CMP #$20
+ 2910             BCC X.END
+ 2920             PHA
+ 2930             LDA #$20
+ 2940             JSR A.STORE
+ 2950             LDA #';
+ 2960             JSR A.STORE
+ 2970             PLA
+ 2980             JSR A.STORE
+ 2990  X.END      JMP END.LINE
+ 3000  ;
+ 3010  CK.BIT     LDA (PCL,X)
+ 3020             CMP #$2C
+ 3030             BNE END.NMEM
+ 3040             LDA *PCH 
+ 3050             STA *YSAVE
+ 3060             INC *PCL
+ 3070             BNE =+3
+ 3080             INC *PCH
+ 3090             JSR LABEL
+ 3100             DEC *PCL
+ 3110             LDA *YSAVE
+ 3120             STA *PCH
+ 3130             BCS END.NMEM
+ 3140             SEC
+ 3150             LDA *PGM.PTR
+ 3160             SBC #4
+ 3170             STA *PGM.PTR
+ 3180             BCS =+3
+ 3190             DEC *PGM.PTR+1
+ 3200             JMP ERR
+ 3220  END.NMEM   LDX #$06
+ 3230  PRADR1     CPX #$03
+ 3240             BNE PRADR3
+ 3250             LDY *LENGTH
+ 3260             BEQ PRADR3
+ 3270             LDA *FORMAT
+ 3280             CMP #$E8
+ 3290             BCS RELADR
+ 3300             LDA #'L
+ 3310             CPY #2
+ 3320             BEQ PRADR2
+ 3330             BIT *RUN.NU
+ 3340             BPL CK.REL
+ 3350             LDA #'$
+ 3360  PRADR2     JSR A.STORE
+ 3370  BYTE2      LDA (PCL),Y
+ 3380             JSR ASC.STORE
+ 3390             DEY
+ 3400             BNE BYTE2
+ 3410  PRADR3     BIT *RUN.NU
+ 3420             BPL PRADR4
+ 3430             LDA *FORMAT
+ 3440             LSR A
+ 3445             BCC NZERO
+ 3450             CMP #$09
+ 3455             BCS NZERO
+ 3460             LDA #'*
+ 3470             JSR A.STORE
+ 3480  NZERO      ASL *FORMAT
+ 3490             BCC PRADR4
+ 3500             LDA CHAR1-1,X
+ 3510             JSR A.STORE
+ 3520             LDA CHAR2-1,X
+ 3530             BEQ PRADR4
+ 3540             JSR A.STORE
+ 3550  PRADR4     DEX
+ 3560             BNE PRADR1
+ 3570             BIT *RUN.NU
+ 3580             BPL RTS1
+ 3590             BMI END.LINE
+ 3600  CK.REL     LDA *FORMAT
+ 3610             CMP #$1D
+ 3620             BNE RTS1
+ 3630  RELADR     LDA (PCL),Y
+ 3640             JSR PCADJ2
+ 3650             TAX
+ 3660             INX
+ 3670             BNE PRNTYX
+ 3680             INY
+ 3690  PRNTYX     TYA
+ 3700  PRNTAX     PHA
+ 3710             LDA #'L
+ 3720             JSR A.STORE
+ 3730             PLA
+ 3740             JSR ASC.STORE
+ 3750  PRNTX      TXA
+ 3760             JSR ASC.STORE
+ 3770             BIT *RUN.NU
+ 3780             BPL RTS1
+ 3790             BMI END.LINE
+ 3800  PCADJ      LDA *LENGTH
+ 3810             SEC
+ 3820  PCADJ2     LDY *PCH
+ 3830             TAX
+ 3840             BPL PCADJ3
+ 3850             DEY
+ 3860  PCADJ3     ADC *PCL
+ 3870             BCC RTS1
+ 3880             INY
+ 3890  RTS1       RTS
+ 3910  END.LINE   PHP
+ 3912             STY *YSAVE
+ 3914  DECPTR     LDY *PGM.PTR
+ 3916             DEY
+ 3918             STY *PGM.PTR
+ 3920             CPY #$FF
+ 3922             BNE MRKEND
+ 3924             DEC *PGM.PTR+1
+ 3926  MRKEND     LDY #$00
+ 3928             LDA (PGM.PTR),Y
+ 3930             CMP #$20
+ 3932             BEQ DECPTR
+ 3934             ORA #$80
+ 3936             BMI A.STORE+3
+ 3950  ASC.STORE  PHP
+ 3960             BIT *RUN.NU
+ 3970             BPL A.STORE+1
+ 3980             PHA
+ 3990             LSR A
+ 4000             LSR A
+ 4010             LSR A
+ 4020             LSR A
+ 4030             JSR NIBASC
+ 4040             JSR A.STORE
+ 4050             PLA
+ 4060             JSR NIBASC
+ 4070             JSR A.STORE
+ 4080             PLP
+ 4090             RTS
+ 4110  A.STORE    PHP
+ 4120             STY *YSAVE
+ 4130             LDY #0
+ 4140             STA (PGM.PTR),Y
+ 4150             CLC
+ 4160             INC *PGM.PTR
+ 4170             BNE PG.RTN
+ 4180             INC *PGM.PTR+1
+ 4190  PG.RTN     PLP
+ 4200             LDY *YSAVE
+ 4210             RTS
+ 4220  ;
+ 4230  ;
+ 4240  ;
+ 4250  LABEL      SA (LBL.LOW LBL.IDX)
+ 4260             LDY #1
+ 4270             .BY $2C
+ 4280  NXT.LBL    LDY #3
+ 4290  NXT.CHR    INC *LBL.IDX
+ 4300             BNE NO.INC
+ 4310             INC *LBL.IDX+1
+ 4320  NO.INC     DEY
+ 4330             BNE NXT.CHR
+ 4340             LDA *PCH
+ 4350             CMP (LBL.IDX),Y
+ 4360             BNE CK.END
+ 4370             INY
+ 4380             LDA *PCL
+ 4390             CMP (LBL.IDX),Y
+ 4400             BNE CK.END
+ 4410             CLC
+ 4420             RTS
+ 4430  CK.END     LDA *LBL.IDX
+ 4440             CMP *LBL.PTR
+ 4450             BCC NXT.LBL
+ 4460             LDA *LBL.IDX+1
+ 4470             CMP *LBL.PTR+1
+ 4480             BCC NXT.LBL
+ 4490             RTS
+ 4510  ;
+ 4520  ;
+ 4530  MODE       .BY $40 $02 $45 $03 $D0 $08 $40 $09 $30
+ 4540  ;
+ 4550             .BY $22 $45 $33 $D0 $08 $40 $09 $40 $02 $45
+ 4560  ;
+ 4570  ;
+ 4580             .BY $33 $D0 $08 $40 $09 $40 $02 $45 $B3 $D0
+ 4590             .BY $08 $40 $09 $00 $22 $44 $33 $D0 $8C $44
+ 4600             .BY $00 $11 $22 $44 $33 $D0 $8C $44 $9A $10
+ 4610             .BY $22 $44 $33 $D0 $08 $40 $09 $10 $22 $44
+ 4620             .BY $33 $D0 $08 $40 $09 $62
+ 4630  ;
+ 4640             .BY $13 $78 $A9
+ 4650  MODE2      .BY $00
+ 4660             .BY $21
+ 4670             .BY $01
+ 4680             .BY $02
+ 4690             .BY $00
+ 4700             .BY $80
+ 4710             .BY $59
+ 4720             .BY $4D
+ 4730             .BY $11
+ 4740             .BY $12
+ 4750             .BY $06
+ 4760             .BY $4A
+ 4770             .BY $05
+ 4780             .BY $1D
+ 4790  CHAR1      .BY $2C $29 $2C $23 $28 $41
+ 4800  CHAR2      .BY $59 $00 $58 $00 $00 $00
+ 4810  ;
+ 4820  MNEML      .BY $1C $8A $1C $23 $5D $8B $1B $A1 $9D
+ 4830             .BY $8A $1D $23 $9D $8B $1D $A1 $00 $29 $19
+ 4840             .BY $AE $69 $A8 $19 $23 $24 $53 $1B $23
+ 4850             .BY $24 $53 $19 $A1 $00
+ 4860  ;
+ 4870             .BY $1A $5B $5B $A5 $69 $24 $24
+ 4880  ;
+ 4890             .BY $AE $AE $A8 $AD $29 $00 $7C $00
+ 4900  ;
+ 4910             .BY $15 $9C $6D $9C $A5 $69 $29 $53
+ 4920  ;
+ 4930             .BY $84 $13 $34 $11 $A5 $69 $23 $A0
+ 4940  ;
+ 4950  MNEMR      .BY $D8 $62 $5A $48 $26 $62 $94 $88
+ 4960             .BY $54 $44 $C8 $54 $68 $44 $E8 $94 $F4 $B4
+ 4970             .BY $08 $84 $74 $B4 $28 $6E $74 $F4 $CC $4A
+ 4980             .BY $72 $F2 $A4 $8A
+ 4990  ;
+ 5000             .BY $F4 $AA $A2 $A2 $74 $74 $74 $72
+ 5010  ;
+ 5020             .BY $44 $68 $B2 $32 $B2 $F4 $22 $F4
+ 5030  ;
+ 5040             .BY $1A $1A $26 $26 $72 $72 $88 $C8
+ 5050             .BY $C4 $CA $26 $48 $44 $44 $A2 $C8
+ 5060  MESS1      .BY $0D $0A 'START ADDRESS =$' $00
+ 5090  MESS2      .BY $0D $0A 'END ADDRESS =$' $00
+ 5100  MESS3      .BY $0D $0A 'DISASSEMBLE, LABELS FIRST'
+ 5110             .BY $0D $0A 'OR RETURN TO RAE (D,L OR R)?' $00
+ 5120  MESS4      .BY $0D $0A 'PASS 2' $00
+ 5130  ;
+ 5140  TOGGLE     JSR ACCESS
+ 5150             LDA TECHO
+ 5160             ORA #$80
+ 5170             STA TECHO
+ 5180  Z.STORE    RTS
+ 5185             .DS $12
+ 5190             .EN

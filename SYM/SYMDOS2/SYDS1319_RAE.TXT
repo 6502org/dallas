@@ -1,0 +1,467 @@
+PR
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                   USING FORMAT UTILITY PROGRAM 
+ 
+ 
+      Enter the format program by typing: 
+           .L3<cr> 
+           FORMAT.COM,80<cr> 
+ 
+ 
+      Now there is two function only,FORMAT AND QUIT. 
+ 
+ FORMAT:  message  will  display to ask for  unit  no.,density,and 
+          sector length.  Unit no. is same as that in SYMDOS2. The 
+          density  code  is  0 for single and 1  for  double.  The 
+          sector length code is 0 for 128,  1 for 256,  2 for  512 
+          and 3 for 1024. There is no defaults. 
+          (The  parameters  defaulted in SYMDOS2 is  for  diskette 
+          formatted as double density 256 bytes/sector) 
+ 
+ QUIT  :  quit to the calling program. Usually is the SUPERMON. 
+ 
+ 
+ 
+      See  appendix  F  to see how to  assemble  FORMAT.RAE  after 
+ modification(s). 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                                13 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                            APPENDIX A 
+                        SUMMARY OF COMMAND 
+ 
+ 
+ In  all  the  following commands it is assumed  that  a  carriage 
+ return is entered after each line in the command. 
+ 
+      MON--SUPERMON        BAS--BASIC          RAE--RAE-1 
+ 
+                           COMMAND TABLE 
+                           ------------- 
+    FUNCTION 
+ 
+ Link to SYMDOS      MON  .G 9006 
+                     BAS  X=USR(&"9000",0) 
+                     RAE  RU $9003 
+ Save to disk        MON  .S3 
+                          filename,u,sa,ea 
+                     BAS  SAVE u:"filename" 
+                     RAE  >EN filename u 
+ Load from disk      MON  .L3 
+                          filename,u 
+                     BAS  LOAD u:"filename" 
+                     RAE  >LO filename u 
+ Load and relocate   MON  .L3 
+                          filename,u,sa 
+ Load and append     BAS  LOAD u:A,"filename" 
+                     RAE  >LO filename u A 
+ Continue to disk    RAE  >n .CT filename u 
+ Delete file(s)      MON  .S4 
+                          filename,u 
+                     RAE  >DC Kill filename u 
+ Rename file         MON  .S0 
+                          newname,oldname,u 
+ List directory      MON  .L7 u 
+                       or .L7 
+                          filename,u 
+                     RAE  >DC Dir u 
+                       or >DC Dir filename u 
+ 
+ 
+                       PARAMETER DEFINITION 
+                       -------------------- 
+      filename  see the section 'filename format' 
+      oldname   old filename 
+      newname   new filename 
+      u         drive unit no. 
+      sa        starting address of file in memory 
+      ea        ending address of file in memory 
+      n         line number 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                                14 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                            APPENDIX B 
+                       SUMMARY OF ERROR CODE 
+      ERROR CODE          MEANING 
+      ----------          ------- 
+           0F             Program to be loaded is too large 
+           31             Not available (drive or formatted disk) 
+           34             Invalid track number. 
+           36             Invalid command code to DDI 
+           39             Record not found 
+           3A             Seek error 
+           3B             Diskette write protected 
+           3D             lost data 
+           3E             CRC error 
+           3F             Not ready 
+           40             8" double density error 
+ 
+           50             Syntax error 
+           51             directory full 
+           52             disk full 
+           53             name not found 
+ cancelled 54             buffer input error 
+           55             Read verify error 
+           56             Attemp to write a write-protected file 
+           57             Block not opened. 
+                          (during read,no block allocated for that 
+                           part during read) 
+           58             file name already exist 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                                15 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                            APPENDIX C 
+                  ZERO PAGE AND SYSTEM RAM USAGE 
+ 
+ $E8 $EB $F8-$FF are used by FIO3 
+ $EB $FE $FF     are used by DDI2 
+ 
+ $A600-$A61F are used by FIO3 or DDI2. Their usage are: 
+ $A600     IDRIVE or IDISK 
+ $A601     ITRACK 
+ $A602     ISECTR 
+ $A603     IADDRS 
+ $A605     IFLAGS 
+ the  above  5  bytes are parameters required to pass to  DDI2  to 
+ read/write   the  specified  sector,   track,drive  to/from   the 
+ specified address. 
+ $A606     DFLAGS some information about the drive/diskette 
+ $A607     CURTRK    current track 
+ $A608     NOSECS    no. of sectors 
+ $A609     WRKBUF    address of the work buffer 
+ $A60B     SEC/BLK   sectors/block 
+ $A60C     MAX.BLK   max. no. of block per diskette 
+ $A60D     DMXSEC    max. no. of blocks for directory 
+ $A60E     DIRMASK   mask for directory 
+ $A60F     DIR/LIN   directory listing per line 
+ $A610     DRASAV    drive characterise save 
+ $A611     STEPRT    step time 
+ $A612     FFLAGS    flags 
+ $A613      DLYTM    head  load delay time for 8".  motor on  time 
+                     for 5" 
+ $A614     NOTRKS    no. of tracks 
+ $A615     IDTRAK 
+ $A616     SIDSAV 
+ $A617     IDSECT 
+ $A618     CURSCL    sector length 
+ $A619     CRCBYTES 
+ $A61B     UFLAGS     
+ $A61C     DIRSEC 
+ $A61D     URCNEW    new unrecongise vector 
+ $A61F     DIRCNT 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                                16 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                            APPENDIX D 
+                SOME POSSIBLE HARDWARE MODIFICATION 
+ 
+      Two  hardware modification of FDC-1 is supported by SYMDOS2. 
+ The modification and required change in FDC-1 is described below: 
+ 
+ 1)Hardware:The  motor  of the drive will turn on only  when  both 
+            motor  on is low and drive is selected.  Therefore  at 
+            most one motor will be on at the same time.  This  can 
+            save power. 
+   Software:Change bit 1 of FFLAGS to 1. 
+ 
+ 2)Hardware:Delay  in  drive deselect.  When this modification  is 
+            made.  Then after every disk operation (e.g. sector(s) 
+            read),  the drive may be deselect softwarely and  need 
+            not  consider whether this is any more disk  operation 
+            follow.  A  mono-stable should be inserted between the 
+            jumper 5. 
+   Software:Change bit 0 of FFLAGS TO 1. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                                17 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                            APPENDIX E 
+                        SOME USEFUL ROUINES 
+ 
+ 
+  LABEL    ADDR      DESCRIPTION 
+  -----    ----      ----------- 
+ BASENTRY       Entry  point  for  linking BAS-1  and  DOS2.  (JMP 
+                MONENTRY at the end) 
+ RAEENTRY       Entry  point  for  linking  RAE  and  DOS2.   (JMP 
+                MONENTRY at the end) 
+ MONENTRY       Entry point for linking MON and DOS2. 
+ L3CMD          :Processing of L3,  S0,  S3,  S4 and L7  commands. 
+ SOCMD          :When  calling this routines,  parameters required 
+ S3CMD          :by the command ahould be supplied in P3L-P1H  and 
+ S4CMD          :PARNR accordingly. Error message will be printed. 
+ L7CMD          : 
+ 
+ [Unless otherwise  specified,  the below routines  will  indicate 
+ error  by setting carry flag to 1 on return and the error code is 
+ in the accumulator A] 
+ SP.LDX         SETPARMS and then go LOADX 
+ LOADX          Load  file into memory with filename in WRKBUF-$28 
+                (i.e.  FCB).  If PARNR=2,  start  address=P3H,P3L. 
+                Otherwise file is loaded where it is save. 
+ OFF            Turn off the motor and deselect all drives. 
+ SP.SVX         SETPARMS and then go SAVEX. 
+ SAVEX          Save  file  on to diskette with filename  in  FCB. 
+                Start  and end address is in P1H,P1L  and  P2H,P2L 
+                respectively.  Any  file  with same file  name  is 
+                deleted previous the saving. 
+ SP.DEL         SETPARMS and then go DEL 
+ DEL            delete  the file(s) with file name in  FCB.  Drive 
+                number is in IDISK.  If C=0,Z=1,  this indicate no 
+                this  file present.  If C=0,Z=0,  then it indicate 
+                the file(s) is/are successfully deleted. 
+ SP.REN         SETPARMS and then go RENAME 
+ RENAME         Rename  the file with file name in FCB to the  new 
+                file name in FCB+$10. 
+ SP.DIR1        SETPARMS if bit 6 of UFLAGS is not =1 and then  go 
+                DIR.FM1. 
+ DIR.FM1        List all files in drive IDISK. 
+ SP.DIR2        SETPARMS  if bit 6 of UFLAGS is not =1 and then go 
+                DIR.FM2 
+ DIR.FM2        Directory listing some selected file referenced by 
+                the file name (may be unambiguous) in FCB 
+ GETDTA         Get file name and other parameters from the input. 
+                Filename  is  stored  in FCB  and  parameters  are 
+                stored in P3L-P1H. 
+ GETNAM         Get file name from input. 
+ USET           Set the drive numbr,  side and options.  LSB=drive 
+                no. bit 1=side no. 
+ SETPARMS       Set  up necessary parameters.  Read parameters  of 
+                the diskette into memory if ID sector present.  It 
+                should be called before every disk operation. 
+ 
+ 
+ 
+                                18 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ OPEN           Open file with file name in FCB.  i.e.  search for 
+                the file with file name in FCB 
+ MAPPING        Set  up  the memory bit map of  the  diskette  and 
+                stored in memory starting at MAPPT (WRKBUF-$48) 
+ SCAN           Change  ?  to $00 and * to one or more  $00.  (see 
+                also unambiguous file name type) 
+ CHKIV          Check  for  ?  and * and indicate error if one  or 
+                more of them is present. 
+ BEFLOAD        Open the file and move start and end address  into 
+                P3H-P2L.   If   relocation   option  is   selected  
+                (PARNR=2),  then  start address is assumed  to  be 
+                stored at P3H,P3L. 
+ SETUPRAE       Analyse the RAE command line. Filename is store in 
+                FCB and jump USET before return. 
+ SETUPBAS       Store  the  file  name appeared in  LOAD  or  SAVE 
+                command into FCB. 
+ BASERRO        Output  accumulator  A as nn.  n is  a  HEXDECIMAL 
+                digit call OFF 
+ DRER           Call  OFF  and jump to RAE error  message  display 
+                routine. Error code is in A on calling DRER. 
+ OUTERR         Call  OFF  and  jump  to  SUPERMON  error  message 
+                display routine and display error as ER  nn. nn is 
+                the error code.  Error code should be stored in  A 
+                on calling OUTERR. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                                19 
+ 
+ 
+ 
+//
+
+>

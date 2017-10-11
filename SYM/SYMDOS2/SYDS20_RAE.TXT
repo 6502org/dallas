@@ -1,0 +1,74 @@
+PR
+ 
+ 
+ 
+ 
+ 
+ 
+                            APPENDIX F 
+                      ASSEMBLE OF FORMAT.RAE 
+ 
+      Assembling  of  FORMAT.RAE in the normal way will give  many 
+ labels  undefined  error.  It is because all  addresses  of  DDI2 
+ referenced by FORMAT.RAE has not been defined. 
+ 
+      Now,  I  want to introduce a method of linking FORMAT.RAE to 
+ DDI2. We will required two source files FORMAT.RAE and DDI2.RAE. 
+ 
+ 1) Load  DDI2.RAE  into  TEXT  buffer.   Add  the  line   .CT<cr> 
+    immediately  before the line .EN .   Change the .BA address if 
+    required to reflex the actual address of DDI". 
+ 2) Then assemble DDI2.RAE for pass 1 only. i.e. type 
+      >ASseble 
+ 3) When the message 'READY FOR PASs 2' is prined.  DON'T TYPE  PA 
+    to complete pass 2. 
+ 4) Type  SEt  to see the address of the end of label  buffer.  We 
+    should see the following: 
+       aaaa-bbbb cccc-dddd eeee 
+       ffff  gggg 
+ 5) Now type: 
+    >SE $aaaa $bbbb $gggg<cr>    [REM it is $gggg] 
+    but you should remember the value of cccc 
+    This step is to change the starting address of label buffer to 
+    the end of the label buffer of last assembly. 
+ 6) Then LOad FORMAT.RAE into TEXT buffer. Add the line .CT before 
+    the line .EN 
+ 7) Type ASsemble to assemble for pass 1 only 
+ 8) When the message 'READY FOR PASS2' is printed.  Type : 
+    >SE $aaaa $bbbb $cccc 
+    (aaaa, bbbb and cccc are values appeared in step 4) 
+ 9) Now type PAss2 to complete the assemble. 
+ 
+ 
+ 
+ ( If you only have the label file of DDI2.RAE, load it into label 
+ buffer  and  set the start of the label buffer to the end of  the 
+ label file of DDI2.RAE.  Moreover skip step 1 to 5. Value cccc is 
+ the starting address of the label file of DDI2.RAE. 
+ The label file of DDI2.RAE should have the file name DDI2.LAB   ) 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+                                20 
+ 
+ 
+ 
+ 
+ 
+ 
+//
+
+>
